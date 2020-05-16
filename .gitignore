@@ -34,3 +34,10 @@
 /yarn-error.log
 yarn-debug.log*
 .yarn-integrity
+
+# personal stuffs
+personal/
+
+# ds store
+.DS_Store
+**/.DS_Store

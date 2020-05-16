@@ -1,0 +1,97 @@
+/*
+ * SETUPS
+ * Setting up documents
+ */
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+* {
+  box-sizing: border-box;
+  transition: all 100ms;
+}
+
+/*
+ * PRIMITIVES
+ * These are going to be the building blocks of our styles
+ */
+
+// Font sizes
+@mixin f10 { font-size: 2.50rem; }
+@mixin f9  { font-size: 2.20rem; }
+@mixin f8  { font-size: 2.00rem; }
+@mixin f7  { font-size: 1.80rem; }
+@mixin f6  { font-size: 1.50rem; }
+@mixin f5  { font-size: 1.20rem; }
+@mixin f4  { font-size: 1.10rem; }
+@mixin f3  { font-size: 0.95rem; }
+@mixin f2  { font-size: 0.80rem; }
+@mixin f1  { font-size: 0.70rem; }
+
+$s5: 1.50rem;
+$s4: 1.10rem;
+$s3: 0.75rem;
+$s2: 0.50rem;
+$s1: 0.25rem;
+
+@mixin p5 { padding: $s5; }
+@mixin p4 { padding: $s4; }
+@mixin p3 { padding: $s3; }
+@mixin p2 { padding: $s2; }
+@mixin p1 { padding: $s1; }
+
+@mixin m5 { margin: $s5; }
+@mixin m4 { margin: $s4; }
+@mixin m3 { margin: $s3; }
+@mixin m2 { margin: $s2; }
+@mixin m1 { margin: $s1; }
+
+@mixin clear-link {
+  color: inherit;
+  cursor: inherit;
+  text-decoration: inherit;
+}
+
+/*
+ * COMPOSITES
+ * These are made of primitives defined above
+ */
+
+.block-center {
+  // this tag should only be applied to block tags,
+  // otherwise it won't center anything.
+  margin: inherit auto;
+}
+
+.btn {
+  @include p2;
+  @include m1;
+  background-color: red;
+  display: inline-block;
+
+  a, a:link, a:visited, a:hover, a:focus, a:active {
+    @include clear-link;
+  }
+}
+.btn:hover {
+  cursor: pointer;
+}
+
+.btn.big {
+  @include f5;
+  @include p5;
+}
+
+.center {
+  text-align: center;
+}
+
+.title {
+  @include f9;
+  @include m1;
+  display: block;
+  padding: $s1 $s1 $s3 $s1;
+  text-align: center;
+}
