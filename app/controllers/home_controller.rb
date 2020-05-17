@@ -3,24 +3,36 @@ class HomeController < ApplicationController
   end
 
   def new
+    @game = Game.create
+    redirect_to controller: 'home', action: 'wait', game_id: @game.id
   end
 
   def join
     @invalid_game_id = nil
-    # @game = Game.new
+    @game = nil
   end
 
   def wait
-    if !param.has_key?(:game_id)
-      redirect_to 'join'
+    # TODO: if the host leaves, the game should automatically change to
+    #       cancelled!
+    # TODO: I wanted to set the status to 400, but then it prompts the user
+    #       that they're being redirected. Is it possible to 400 without
+    #       prompting user?
+    if !params.has_key?(:game_id)
+      redirect_to action: 'join'
+      return
     end
-    # @game = Game.find(params[:game_id])
-    # if !@game.exists?
-    #   @invalid_game_id = params[:game_id]
-    #   redirect_to 'join'
-    # end
-
-    # TODO: this below is temporary
-    @game_id = params[:game_id]
+    if !Game.exists? params[:game_id]
+      puts "INVALID GAME ID #{params[:game_id]}"
+      @invalid_game_id = params[:game_id]
+      redirect_to action: 'join'
+      return
+    end
+    @game = Game.find(params[:game_id])
+    if @game.is_ended || @game.is_cancelled
+      @invalid_game_id = params[:game_id]
+      redirect_to action: 'join'
+      return
+    end
   end
 end

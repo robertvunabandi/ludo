@@ -12,7 +12,7 @@ class GameTest < ActiveSupport::TestCase
     assert g.status == Game::STATUS_WAITING
   end
 
-  test "ongoing setters work" do
+  test "ongoing setter work" do
     g = Game.new
     assert g.save
     g.set_ongoing
@@ -20,11 +20,29 @@ class GameTest < ActiveSupport::TestCase
     assert g.status == Game::STATUS_ONGOING
   end
 
-  test "completed setters work" do
+  test "cancel setter work" do
     g = Game.new
     assert g.save
-    g.set_completed
+    g.set_cancelled
     assert g.save
-    assert g.status == Game::STATUS_COMPLETED
+    assert g.status == Game::STATUS_CANCELLED
+  end
+
+  test "ending before completion setter work" do
+    g = Game.new
+    assert g.save
+    g.set_ended
+    assert g.save
+    assert g.is_ended
+    assert g.is_ended_before_completion
+  end
+
+  test "ending setter work" do
+    g = Game.new
+    assert g.save
+    g.set_ended(true)
+    assert g.save
+    assert g.is_ended
+    assert_not g.is_ended_before_completion
   end
 end

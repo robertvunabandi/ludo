@@ -1,7 +1,7 @@
 <%= link_to 'Ludo', root_path, class: 'title' %>
 
 <div class='center'>
-  <%= link_to 'New', new_path, id: 'home-btn-new', class: 'btn big' %>
+  <%= link_to 'New', new_path, id: 'home-btn-new', class: 'btn big', method: :post %>
   <%= link_to 'Join', join_path, id: 'home-btn-join', class: 'btn big' %>
 </div>
 <%= javascript_pack_tag 'index' %>
