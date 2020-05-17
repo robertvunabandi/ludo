@@ -55,24 +55,24 @@ Then, for the next sets of rolls, let's assume a player rolls [`X`, `Y`]. Then,
 the following actions can be taken:
 - If any of `X` or `Y` is a 6, the player must roll that one again. They
   will continue to roll until no more 6's are rolled.
-  - In a variant of this, we may allow continued rolling only if *both*
-    `X` and `Y` are 6's.
+    - In a variant of this, we may allow continued rolling only if *both*
+      `X` and `Y` are 6's.
 
   After that, let's assume the player has collected move collection
   {`X_1`, ..., `X_n`}.
 - If a piece is out of the home, it may move that piece forward for any
   of the `X_i`. A player may choose to move multiple pieces for each of the
   `X_i`s.
-  - If a player lands on their piece, then they are doubled in that square.
-  - If instead a player lands on another player's piece, they capture them.
-    - In one variant, captures go to the capturer's home, from which they
-      must be removed with a 6 into the home and then again with a 6 to exit
-      the home.
-    - In another variant, a player simply returns home to start over.
-  - In another variant (perhaps a harder one), if a piece is close to the
-    graduation lane, the piece must land on the 0, then 1, then 2, etc. For
-    each 1, the player must roll a `1`. For 2, they must roll a `2`, etc.
-  - In other variants, we let the player just move up and graduate.
+    - If a player lands on their piece, then they are doubled in that square.
+    - If instead a player lands on another player's piece, they capture them.
+        - In one variant, captures go to the capturer's home, from which they
+          must be removed with a 6 into the home and then again with a 6 to exit
+          the home.
+        - In another variant, a player simply returns home to start over.
+    - In another variant (perhaps a harder one), if a piece is close to the
+      graduation lane, the piece must land on the 0, then 1, then 2, etc. For
+      each 1, the player must roll a `1`. For 2, they must roll a `2`, etc.
+    - In other variants, we let the player just move up and graduate.
 - If a piece is captured, the player may bring them home using one of the 6
   they have (if this variant is applied).
 - With a 6, a player may bring someone out to start the ride.
@@ -130,23 +130,23 @@ a game is an array of objects (hashes) with the following keys:
  The actions are of the form `A P R` where `A` is the action, `P` is
  which piece took the action, and `R` is the roll. The actions we
  have are `begin`, `move`, `rescue`, `null`, and `stop`.
- - `P`: This is one of {`X.1`, `X.2`, `X.3`, `X.4`}. `X` represents the player
-   that is taking the action, and the other number represents which piece the
-   player moved.
- - `R`: This must be in the set of rolls and must be a one to one mapping from
-   each roll to each action.
- - `begin`: This must be accompanied by a piece that is in the home and with
-   a roll of `6`.
- - `move`: this is used to move pieces. This move encodes a lot of information.
-   The game will know when a move lands on another player's piece and what to
-   do in that case, and this is also used for graduation and such.
- - `rescue`: in playing the variant where players get captured into other player
-   players' homes, then rescue takes a piece and moves them out into one's home.
- - `null`: When there are no valid moves with the pieces given, then the null
-   action is taken with that roll. The piece for this is ignored.
- - `stop`: A stop action is when a player gives up. Essentially what happens
-   here is that the game stops. If a player quit their browser window, that
-   would also count as a `stop`. With a `stop`, the roll used would be `0`.
+   - `P`: This is one of {`X.1`, `X.2`, `X.3`, `X.4`}. `X` represents the player
+     that is taking the action, and the other number represents which piece the
+     player moved.
+   - `R`: This must be in the set of rolls and must be a one to one mapping from
+     each roll to each action.
+   - `begin`: This must be accompanied by a piece that is in the home and with
+     a roll of `6`.
+   - `move`: this is used to move pieces. This move encodes a lot of information.
+     The game will know when a move lands on another player's piece and what to
+     do in that case, and this is also used for graduation and such.
+   - `rescue`: in playing the variant where players get captured into other player
+     players' homes, then rescue takes a piece and moves them out into one's home.
+   - `null`: When there are no valid moves with the pieces given, then the null
+     action is taken with that roll. The piece for this is ignored.
+   - `stop`: A stop action is when a player gives up. Essentially what happens
+     here is that the game stops. If a player quit their browser window, that
+     would also count as a `stop`. With a `stop`, the roll used would be `0`.
 
 #### Game View
 
