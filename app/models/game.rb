@@ -37,7 +37,7 @@ class Game < ApplicationRecord
     when STATUS_COMPLETED
       return "completed"
     when STATUS_ENDED_BEFORE_COMPLETION
-      return "ended before completion"
+      return "ended-before-completion"
     else
       return "[INVALID_STATUS]"
     end
