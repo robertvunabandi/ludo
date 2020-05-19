@@ -12,6 +12,18 @@ class HomeController < ApplicationController
     @game = nil
   end
 
+  def join_game
+    game_id = params["game_id"]
+
+    if game_id.nil?
+      redirect_to action: 'join'
+      return
+    end
+
+    # TODO: Here, add connection to game socket if possible...
+    redirect_to action: 'wait', game_id: game_id
+  end
+
   def wait
     # TODO: if the host leaves, the game should automatically change to
     #       cancelled!

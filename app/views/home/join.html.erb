@@ -1,10 +1,20 @@
 <%= link_to 'Ludo', root_path, class: 'title' %>
 
-<%= # todo: check invalid game id and whether the game variable is there %>
+<% # todo: check invalid game id and whether the game variable is there %>
 
-<span>
-  Enter Game ID
-</span>
-<input type='text'></input>
+<%= form_with url: join_path, method: 'post', local: true do |form| %>
+  <span>
+    Enter Game ID
+  </span>
+  <%= form.label :game_id %>
+  <%= form.text_field :game_id, required: true %>
+  <%= form.submit %>
+<% end %>
 
-<span class='btn'>Join</span>
+<% # LINK JAVASCRIPTS %>
+<%= javascript_pack_tag 'join' %>
+
+<!--
+<input id='game-id-input' type='text'></input>
+<span id='join-game-btn' class='btn'>Join</span>
+-->
