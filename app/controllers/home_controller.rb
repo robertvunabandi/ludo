@@ -1,6 +1,7 @@
 class HomeController < ApplicationController
   def index
     @participant = get_participant
+
   end
 
   def new
@@ -35,11 +36,13 @@ class HomeController < ApplicationController
     # TODO: I wanted to set the status to 400, but then it prompts the user
     #       that they're being redirected. Is it possible to 400 without
     #       prompting user?
+    # Checking if the game id was provided
     if !params.has_key?(:game_id)
       redirect_to action: 'join'
       return
     end
 
+    # with the game id, now we will check for various errors.
     game_id = params[:game_id]
 
     if !Game.exists? game_id
@@ -60,6 +63,32 @@ class HomeController < ApplicationController
       redirect_to action: 'join'
       return
     end
+
+    # Game is not ended nor cancelled. It could either be waiting
+    # or ongoing.
+    ActionCable.server.broadcast "wait_channel",
+      content: "Hey from #{@participant.id}"
+
+    # CASE 1: ONGOING
+    # Say that the game has already started
+    # TODO: for later, we should propose them whether they want to watch it
+    if @game.is_ongoing
+      @error_msg = "The game ID you were looking for (#{game_id}) has already started"
+      redirect_to action: 'join'
+      return
+    end
+
+    # CASE 2: WAITING: make this person join the game
+    # CASE 2.1: MORE PLAYERS NEEDED: after they join, we still haven't
+    #           reached 4 players
+    # TODO: handle the case above
+
+    # CASE 2.2: REACHED FOR PLAYER: after they join, we get to 4 players
+    # TODO: handle the case above
+
+    # CASE 2.3: ALREADY AT 4 PLAYER: if they join, we'd be at 5 players
+    # TODO: print some error, we should never reach this case because
+    #       CASE 2.2 will make the game ongoing
   end
 
   private

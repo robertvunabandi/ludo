@@ -1,3 +1,6 @@
+<% content_for :head do %>
+  <% # <%= javascript_include_tag 'wait_channel' %>
+<% end %>
 <span>
   Game ID: <%= @game.id %>
   Status: <%= @game.readable_status %>
