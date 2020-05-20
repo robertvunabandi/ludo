@@ -11,7 +11,7 @@ class HomeController < ApplicationController
 
   def join
     @participant = get_participant
-    @invalid_game_id = nil
+    @error_msg = nil
     @game = nil
   end
 
@@ -39,15 +39,24 @@ class HomeController < ApplicationController
       redirect_to action: 'join'
       return
     end
-    if !Game.exists? params[:game_id]
-      puts "INVALID GAME ID #{params[:game_id]}"
-      @invalid_game_id = params[:game_id]
+
+    game_id = params[:game_id]
+
+    if !Game.exists? game_id
+      @error_msg = "The game ID you were looking for (#{game_id}) is invalid"
       redirect_to action: 'join'
       return
     end
-    @game = Game.find(params[:game_id])
-    if @game.is_ended || @game.is_cancelled
-      @invalid_game_id = params[:game_id]
+
+    @game = Game.find(game_id)
+
+    if @game.is_ended
+      @error_msg = "The game ID you were looking for (#{game_id}) has already ended"
+      redirect_to action: 'join'
+    end
+
+    if @game.is_cancelled
+      @error_msg = "The game ID you were looking for (#{game_id}) was cancelled"
       redirect_to action: 'join'
       return
     end
@@ -56,12 +65,13 @@ class HomeController < ApplicationController
   private
 
   def get_participant
-    if (!cookies.has_key?(:participant)) || (!Participant.exists?(cookies[:participant]))
+    saved_participant = cookies.encrypted[:participant]
+    if (saved_participant.nil?) || (!Participant.exists?(saved_participant))
       participant = Participant.new
       participant.save
-      cookies[:participant] = participant.id
+      cookies.encrypted[:participant] = participant.id
     else
-      participant = Participant.find(cookies[:participant])
+      participant = Participant.find(saved_participant)
     end
     return participant
   end
