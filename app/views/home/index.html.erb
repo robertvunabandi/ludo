@@ -1,3 +1,6 @@
+<% content_for :head do %>
+  <%= javascript_pack_tag 'index' %>
+<% end %>
 <%= link_to 'Ludo', root_path, class: 'title' %>
 
 <div class='center'>
@@ -6,4 +9,3 @@
 </div>
 
 <% # LINK JAVASCRIPTS %>
-<%= javascript_pack_tag 'index' %>
