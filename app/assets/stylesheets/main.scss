@@ -26,9 +26,9 @@ body {
 @mixin f6  { font-size: 1.50rem; }
 @mixin f5  { font-size: 1.20rem; }
 @mixin f4  { font-size: 1.10rem; }
-@mixin f3  { font-size: 0.95rem; }
-@mixin f2  { font-size: 0.80rem; }
-@mixin f1  { font-size: 0.70rem; }
+@mixin f3  { font-size: 1.00rem; } // THIS IS THE MIDDLE FONT SIZE
+@mixin f2  { font-size: 0.90rem; }
+@mixin f1  { font-size: 0.75rem; }
 
 $s5: 1.50rem;
 $s4: 1.10rem;
@@ -54,7 +54,6 @@ $s1: 0.25rem;
   text-decoration: inherit;
 }
 
-
 /*
  * COMPOSITES
  * These are made of primitives defined above
@@ -65,10 +64,15 @@ $s1: 0.25rem;
   @include clear-link;
 }
 
+select, input {
+  @include f3;
+}
+
 .block-center {
   // this tag should only be applied to block tags,
   // otherwise it won't center anything.
-  margin: inherit auto;
+  margin: 0 auto;
+  display: block;
 }
 
 // a.btn, a.btn:link, a.btn:visited, a.btn:hover, a.btn:focus, a.btn:active {
@@ -79,6 +83,7 @@ $s1: 0.25rem;
   @include m1;
   background-color: red;
   display: inline-block;
+  border: none;
 }
 .btn:hover {
   cursor: pointer;
@@ -103,3 +108,14 @@ $s1: 0.25rem;
 .title:hover {
   cursor: pointer;
 }
+
+.h1, .h2, .h3, .h4 {
+  display: block;
+  text-align: center;
+  padding: $s1 $s1 $s2 $s1;
+}
+
+.h1 { @include f7; }
+.h2 { @include f6; }
+.h3 { @include f5; }
+.h4 { @include f4; }

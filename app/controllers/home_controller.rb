@@ -11,7 +11,14 @@ class HomeController < ApplicationController
   def create
     @participant = get_participant
     @game = Game.create
-    # TODO: make the game rules
+    # use the game parameters to create the rules
+    rule_fields = Rule::VALID_RULE_NAMES.collect {|r| {
+      :name => r,
+      :game => @game,
+      :value => params[r],
+    }}
+    @rules = Rule.create(rule_fields)
+    # TODO: create a channel local instance for the game or something??
     redirect_to controller: 'home', action: 'wait', game_id: @game.id
   end
 

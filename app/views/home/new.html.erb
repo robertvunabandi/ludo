@@ -1,16 +1,30 @@
-<!--
-  This is when someone is creating a new game.
-  Here, they set the rules
--->
 <%= link_to 'Ludo', root_path, class: 'title' %>
-<span class='h1'>
-  Game Rules
-</span>
-TODO: rules
+<%= form_with url: create_path, method: 'post', class: 'center', local: true do |form| %>
+  <span class='h1'>
+    Game Rules
+  </span>
+  <span>
+    TODO: Talk about the general rules of LUDO, then talk about the variants
+    that the person creating the game can set. Also mention that the rules have
+    been set to a default.
+  </span>
 
-<span class='h1'>
-  Other Rules
-</span>
-TODO: rules
+  <% for rule in Rule::VALID_RULE_NAMES do %>
+    <%
+      rule_title = rule.split('_').collect {|w| w.capitalize}.join(' ')
+      rule_description = Rule::RULE_SPECS[rule][:description]
+      selections = Rule::RULE_SPECS[rule][:select].keys.collect {|k| [k, Rule::RULE_SPECS[rule][:select][k]]}
+      default = Rule::RULE_SPECS[rule][:default]
+    %>
+    <span class='h3'><%= rule_title %></span>
+    <span class='block-center center'>
+      <span class='block-center'><%= rule_description %></span>
+      <%= select_tag rule, options_for_select(selections, default), required: true %>
+    </span>
+    <br/>
+  <% end %>
 
-<%= link_to 'Start', create_path, id: 'create-btn', class: 'btn big', method: :post %>
+  <%= form.submit "Create New Game", class: 'btn' %>
+<% end %>
+
+
