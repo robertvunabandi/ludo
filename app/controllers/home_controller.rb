@@ -6,7 +6,12 @@ class HomeController < ApplicationController
 
   def new
     @participant = get_participant
+  end
+
+  def create
+    @participant = get_participant
     @game = Game.create
+    # TODO: make the game rules
     redirect_to controller: 'home', action: 'wait', game_id: @game.id
   end
 

@@ -1,6 +1,7 @@
 Rails.application.routes.draw do
   root 'home#index'
-  post '/new', to: 'home#new'
+  get '/new', to: 'home#new'
+  post '/create', to: 'home#create'
   get '/join', to: 'home#join'
   post '/join', to: "home#join_game"
   get '/wait', to: 'home#wait'
