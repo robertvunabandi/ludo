@@ -4,6 +4,8 @@
 # - 3: COMPLETED
 
 class Game < ApplicationRecord
+  has_many :rules
+
   STATUS_WAITING = 10
   STATUS_CANCELLED = 11
   STATUS_ONGOING = 20
