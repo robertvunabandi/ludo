@@ -1,6 +1,14 @@
+<% content_for :head do %>
+  <%= javascript_pack_tag 'join' %>
+<% end %>
+
 <%= link_to 'Ludo', root_path, class: 'title' %>
 
 <% # todo: check invalid game id and whether the game variable is there %>
+
+<% if !@error_msg.nil? %>
+  <span class='error-box'><%= @error_msg %></span>
+<% end %>
 
 <%= form_with url: join_path, method: 'post', local: true do |form| %>
   <span>
@@ -11,8 +19,6 @@
   <%= form.submit %>
 <% end %>
 
-<% # LINK JAVASCRIPTS %>
-<%= javascript_pack_tag 'join' %>
 
 <!--
 <input id='game-id-input' type='text'></input>

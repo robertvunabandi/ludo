@@ -79,11 +79,11 @@ select, input {
 //   @include clear-link;
 // }
 .btn {
-  @include p2;
   @include m1;
+  @include p2;
   background-color: red;
-  display: inline-block;
   border: none;
+  display: inline-block;
 }
 .btn:hover {
   cursor: pointer;
@@ -98,15 +98,11 @@ select, input {
   text-align: center;
 }
 
-.title {
-  @include f9;
-  @include m1;
+.error-box {
+  @include p3;
+  background-color: rgba(255, 0, 0, 0.20); // TODO: make this color a variable
   display: block;
-  padding: $s1 $s1 $s3 $s1;
-  text-align: center;
-}
-.title:hover {
-  cursor: pointer;
+  font-weight: 900;
 }
 
 .h1, .h2, .h3, .h4 {
@@ -119,3 +115,14 @@ select, input {
 .h2 { @include f6; }
 .h3 { @include f5; }
 .h4 { @include f4; }
+
+.title {
+  @include f9;
+  @include m1;
+  display: block;
+  padding: $s1 $s1 $s3 $s1;
+  text-align: center;
+}
+.title:hover {
+  cursor: pointer;
+}
