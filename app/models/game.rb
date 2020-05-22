@@ -5,6 +5,7 @@
 
 class Game < ApplicationRecord
   has_many :rules
+  has_many :players
 
   STATUS_WAITING = 10
   STATUS_CANCELLED = 11
