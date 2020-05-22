@@ -1,0 +1,17 @@
+<%= link_to 'Ludo', root_path, class: 'title' %>
+
+<% # todo: check invalid game id and whether the game variable is there %>
+
+<% if !@error_msg.nil? %>
+  <span class='error-box'><%= @error_msg %></span>
+<% end %>
+
+<%= form_with url: watch_path, local: true do |form| %>
+  <span>
+    Enter Game ID
+  </span>
+  <%= form.label :game_id %>
+  <%= form.text_field :game_id, required: true %>
+  <%= form.submit "Watch" %>
+<% end %>
+

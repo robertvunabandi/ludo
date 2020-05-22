@@ -1,7 +1,6 @@
 class HomeController < ApplicationController
   def index
     @participant = get_participant
-
   end
 
   def new
@@ -11,6 +10,10 @@ class HomeController < ApplicationController
   def create
     @participant = get_participant
     @game = Game.create
+
+    # make this participant the first player, which will make them a host
+    @player = Player.create(game: @game, participant: @participant)
+
     # use the game parameters to create the rules
     rule_fields = Rule::VALID_RULE_NAMES.collect {|r| {
       :name => r,
@@ -18,14 +21,14 @@ class HomeController < ApplicationController
       :value => params[r],
     }}
     @rules = Rule.create(rule_fields)
-    # TODO: create a channel local instance for the game or something??
+
+    # finally, redirect to the home controller
     redirect_to controller: 'home', action: 'wait', game_id: @game.id
   end
 
   def join
     @participant = get_participant
     @error_msg = nil
-    @game = nil
   end
 
   def join_game
@@ -37,19 +40,46 @@ class HomeController < ApplicationController
       return
     end
 
-    # TODO: Here, add connection to game socket if possible...
+    # Now, check the various game statuses
+    if !Game.exists? game_id
+      @error_msg = "The game ID you were looking for (#{game_id}) is invalid."
+      redirect_to action: 'join'
+      return
+    end
+    @game = Game.find(game_id)
+    if !@game.is_waiting
+      @error_msg = "The game ID you were looking for (#{game_id}) " \
+        "is not waiting for new players to join. You can try " \
+        "watching it or joining a different game."
+      redirect_to action: 'join'
+      return
+    end
+
+    # make the player to join this game, check if it's saved, if it saves
+    # we can move the game forward
+    @player = Player.create(game: @game, participant: @participant)
+    if @player.invalid?
+      errors = @player.errors.full_messages.join(", ")
+      @error_msg = "The following errors happened: #{errors}."
+      redirect_to action: 'join'
+      return
+    end
+
     redirect_to action: 'wait', game_id: game_id
   end
 
   def wait
     @participant = get_participant
     # TODO: if the host leaves, the game should automatically change to
-    #       cancelled!
-    # TODO: I wanted to set the status to 400, but then it prompts the user
-    #       that they're being redirected. Is it possible to 400 without
-    #       prompting user?
+    #       cancelled after a time out. The host should also have the option
+    #       to cancel the game. For the time out, we can use the web socket.
+
     # Checking if the game id was provided
     if !params.has_key?(:game_id)
+      @error_msg = "You must provide a game ID in order to join a game."
+      # I wanted to set the status to 400, but then it prompts the user
+      # that they're being redirected. Is it possible to 400 without
+      # prompting user? But anyways, whatever lol
       redirect_to action: 'join'
       return
     end
@@ -58,49 +88,76 @@ class HomeController < ApplicationController
     game_id = params[:game_id]
 
     if !Game.exists? game_id
-      @error_msg = "The game ID you were looking for (#{game_id}) is invalid"
+      @error_msg = "The game ID you were looking for (#{game_id}) is invalid."
       redirect_to action: 'join'
       return
     end
-
     @game = Game.find(game_id)
-
     if @game.is_ended
-      @error_msg = "The game ID you were looking for (#{game_id}) has already ended"
+      @error_msg = "The game ID you were looking for (#{game_id}) " \
+        "has already ended."
       redirect_to action: 'join'
     end
-
     if @game.is_cancelled
-      @error_msg = "The game ID you were looking for (#{game_id}) was cancelled"
+      @error_msg = "The game ID you were looking for (#{game_id}) " \
+        "was cancelled."
+      redirect_to action: 'join'
+      return
+    end
+    # TODO: maybe also check that the game hasn't expired?
+
+    # Now that we have the game, we get the player. Because of the
+    # logic, a player would already have been created by this point
+    # and this player is a player of this game, unless someone comes
+    # at the wait link from an invalid place (i.e., they just type a
+    # random URL), so we check that below.
+    if !Player.exists?(game_id: @game.id, participant_id: @participant.id)
+      @error_msg = "It seems like you are not a player of the game ID " \
+        "(#{game_id}) you are looking for. Try joining through the join " \
+        "link. Or, if you'd like to watch that game, use the watch " \
+        "option instead."
       redirect_to action: 'join'
       return
     end
 
-    # Game is not ended nor cancelled. It could either be waiting
-    # or ongoing.
-    ActionCable.server.broadcast "wait_channel",
-      content: "Hey from #{@participant.id}"
+    @player = Player.find_by(game_id: @game.id, participant_id: @participant.id)
 
     # CASE 1: ONGOING
-    # Say that the game has already started
-    # TODO: for later, we should propose them whether they want to watch it
+    # If the game is ongoing, this means that this player must have left
+    # or something, so here, we just bring them back.
     if @game.is_ongoing
-      @error_msg = "The game ID you were looking for (#{game_id}) has already started"
-      redirect_to action: 'join'
+      @error_msg = "The game ID you were looking for (#{game_id}) " \
+        "has already started."
+      redirect_to action: 'play', game_id: @game.id
       return
     end
 
-    # CASE 2: WAITING: make this person join the game
-    # CASE 2.1: MORE PLAYERS NEEDED: after they join, we still haven't
-    #           reached 4 players
-    # TODO: handle the case above
+    # CASE 2: WAITING
+    # We must be in the waiting case because we've exhausted all
+    # possible game states. Now, onto sub-cases.
 
-    # CASE 2.2: REACHED FOR PLAYER: after they join, we get to 4 players
-    # TODO: handle the case above
+    # CASE 2.1: This person is the host, do nothing in that case.
+    # The rest is handled by the view.
+    if @player.is_host
+      return
+    end
 
-    # CASE 2.3: ALREADY AT 4 PLAYER: if they join, we'd be at 5 players
-    # TODO: print some error, we should never reach this case because
-    #       CASE 2.2 will make the game ongoing
+    # CASE 2.2: This person is a new player that joined. Broadcast
+    # to the waiting room that they joined. Then, let the rest be
+    # handled by the view.
+    ActionCable.server.broadcast(
+      "wait_channel", event: "join", participant_id: @participant.id
+    )
+  end
+
+  def play
+  end
+
+  def watch_find
+    @error_msg = nil
+  end
+
+  def watch
   end
 
   private
