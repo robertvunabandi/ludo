@@ -1,14 +1,13 @@
 class HomeController < ApplicationController
+  before_action :get_participant
+
   def index
-    @participant = get_participant
   end
 
   def new
-    @participant = get_participant
   end
 
   def create
-    @participant = get_participant
     @game = Game.create
 
     # make this participant the first player, which will make them a host
@@ -27,12 +26,10 @@ class HomeController < ApplicationController
   end
 
   def join
-    @participant = get_participant
     @error_msg = nil
   end
 
   def join_game
-    @participant = get_participant
     game_id = params["game_id"]
 
     if game_id.nil?
@@ -55,9 +52,14 @@ class HomeController < ApplicationController
       return
     end
 
-    # make the player to join this game, check if it's saved, if it saves
-    # we can move the game forward
-    @player = Player.create(game: @game, participant: @participant)
+    # find the player for this game. If the player doesn't exist, create
+    # them. If they do, just get the player.
+    if !Player.exists?(game_id: @game.id, participant_id: @participant.id)
+      @player = Player.create(game: @game, participant: @participant)
+    else
+      @player = Player.find_by(game_id: @game.id, participant_id: @participant.id)
+    end
+
     if @player.invalid?
       errors = @player.errors.full_messages.join(", ")
       @error_msg = "The following errors happened: #{errors}."
@@ -69,7 +71,6 @@ class HomeController < ApplicationController
   end
 
   def wait
-    @participant = get_participant
     # TODO: if the host leaves, the game should automatically change to
     #       cancelled after a time out. The host should also have the option
     #       to cancel the game. For the time out, we can use the web socket.
@@ -171,6 +172,6 @@ class HomeController < ApplicationController
     else
       participant = Participant.find(saved_participant)
     end
-    return participant
+    @participant = participant
   end
 end
