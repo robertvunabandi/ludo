@@ -1,0 +1,35 @@
+@import "main";
+
+#active-players {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  #inner-active-players {
+    display: block;
+    width: 40%;
+    text-align: left;
+
+    .player {
+      @include p1;
+      display: block;
+
+      .player-index, .player-id, .player-username, .player-host-indicator {
+        @include p1;
+        display: inline-block;
+      }
+      .player-index {
+        background-color: rgba(0, 0, 0, 0.1);
+      }
+      .player-id {
+        text-decoration: italic;
+      }
+      .player-username {
+        font-weight: 900;
+      }
+      .player-host-indicator {
+        background-color: rgba(255, 0, 0, 0.2);
+      }
+    }
+  }
+}

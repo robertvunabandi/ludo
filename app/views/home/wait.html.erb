@@ -1,6 +1,48 @@
 <% content_for :head do %>
+  <%= stylesheet_link_tag 'wait', media: 'all', 'data-turbolinks-track': 'reload' %>
   <%= javascript_pack_tag 'wait' %>
 <% end %>
+
+<%= link_to 'Ludo', root_path, class: 'title' %>
+
+<span class='block-center center'>
+  <span>
+    Send the following link to your friends so
+    they can join this game:
+    <span class="copyable-link">
+      <span class="link"><%= "#{@hostname}/join/#{@game.id}" %></span>
+      <span class="copy">copy</span>
+    </span>
+  </span>
+  <span class='h1'>Waiting for Others to Join</span>
+  <span class='block-center' id='active-players'></span>
+
+  <span>
+    <% if @player.is_host %>
+      <span class='btn'>
+        Begin
+      </span>
+    <% else %>
+      <span class='btn'>
+        Waiting for the host player to begin the game
+      </span>
+    <% end %>
+    <span class='btn'>
+      View Game Rules
+    </span>
+    <% # hosts can cancel the games and they are the only one who can begin %>
+    <% if @player.is_host %>
+      <span class='btn'>
+        Cancel Game
+      </span>
+    <% end %>
+  </span>
+</span>
+
+
+<br>
+  <span>FROM BEFORE</span>
+<br>
 <span>
   Game ID: <%= @game.id %>
   <br />

@@ -116,6 +116,31 @@ select, input {
 .h3 { @include f5; }
 .h4 { @include f4; }
 
+.copyable-link {
+  display: inline-block;
+  * {
+    font-family: monospace;
+  }
+  .link, .copy {
+    @include p1;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.1); // TODO: make this color a variable
+  }
+  .link {
+    background-color: rgba(0, 0, 0, 0.05); // TODO: make this color a variable
+  }
+  .copy {
+    background-color: rgba(0, 0, 0, 0.15); // TODO: make this color a variable
+    font-weight: 900;
+  }
+  .copy:hover, .copy:focus {
+    background-color: rgba(0, 0, 0, 0.25); // TODO: make this color a variable
+  }
+  .copy:active {
+    background-color: rgba(55, 0, 0, 0.4); // TODO: make this color a variable
+  }
+}
+
 .title {
   @include f9;
   @include m1;

@@ -14,3 +14,32 @@ require("@rails/activestorage").start()
 //
 // const images = require.context('../images', true)
 // const imagePath = (name) => images(name, true)
+
+const App = {
+  helpers: {},
+}
+
+App.main = function main() {
+  // Make all copyable links actually copy things
+  const linkBlocks = document.querySelectorAll(".copyable-link")
+  for (let i = 0; i < linkBlocks.length; i++) {
+    const link = linkBlocks[i].children[0]
+    const copy = linkBlocks[i].children[1]
+    copy.addEventListener(
+      "click",
+      () => App.helpers.copyToClipboard(link.innerText),
+    );
+  }
+}
+
+App.helpers.copyToClipboard = function copyToClipboard(text) {
+  const dummy = document.createElement("textarea")
+  dummy.style.opacity = 0
+  document.body.appendChild(dummy)
+  dummy.value = text
+  dummy.select()
+  document.execCommand("copy")
+  document.body.removeChild(dummy)
+}
+
+window.addEventListener("load", App.main)

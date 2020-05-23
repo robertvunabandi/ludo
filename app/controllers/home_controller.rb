@@ -54,13 +54,13 @@ class HomeController < ApplicationController
 
     # find the player for this game. If the player doesn't exist, create
     # them. If they do, just get the player.
-    if !Player.exists?(game_id: @game.id, participant_id: @participant.id)
-      @player = Player.create(game: @game, participant: @participant)
-    else
+    if Player.exists?(game: @game, participant: @participant)
       @player = Player.find_by(game_id: @game.id, participant_id: @participant.id)
+    else
+      @player = Player.create(game: @game, participant: @participant)
     end
 
-    if @player.invalid?
+    if !@player.valid?
       errors = @player.errors.full_messages.join(", ")
       @error_msg = "The following errors happened: #{errors}."
       redirect_to action: 'join'
@@ -147,7 +147,10 @@ class HomeController < ApplicationController
     # to the waiting room that they joined. Then, let the rest be
     # handled by the view.
     ActionCable.server.broadcast(
-      "wait_channel", event: "join", participant_id: @participant.id
+      WaitChannel::channel_name(@game.id),
+      event: "join",
+      participant_id: @participant.id,
+      username: @participant.username,
     )
   end
 
