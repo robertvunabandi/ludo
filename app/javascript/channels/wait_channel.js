@@ -5,6 +5,10 @@ const WaitEvents = {
   PLAYERS: "players",
 }
 
+const AppData = {
+  players: null,
+};
+
 function socketSubscribe() {
   const subscription_data = {
     channel: "WaitChannel",
@@ -48,7 +52,8 @@ function socketSubscribe() {
       console.log(data)
       switch (data.event) {
         case WaitEvents.PLAYERS:
-          this._displayPlayers(data)
+          AppData.players = data.players
+          this._displayPlayers(AppData.players)
           break
         default:
           console.log(`Unhandled event (${data.event}) received`)
@@ -61,14 +66,14 @@ function socketSubscribe() {
     // Things that will allow our app to work
     //
 
-    _displayPlayers(data) {
+    _displayPlayers(players) {
       const playersBox = document.querySelector("#active-players")
       clearElement(playersBox)
 
       const innerPlayersBox = document.createElement("span")
       innerPlayersBox.setAttribute("id", "inner-active-players")
 
-      data.players.forEach((player, index) => {
+      players.forEach((player, index) => {
         const playerBox = document.createElement("span")
         playerBox.setAttribute("class", "player")
 
