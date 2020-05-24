@@ -14,9 +14,14 @@
       @include p1;
       display: block;
 
-      .player-index, .player-id, .player-username, .player-host-indicator {
+      .player-index,
+      .player-id,
+      .player-username,
+      .player-username-input,
+      .player-host-indicator {
         @include p1;
         display: inline-block;
+        margin-right: $s1;
       }
       .player-index {
         background-color: rgba(0, 0, 0, 0.1);
@@ -24,7 +29,7 @@
       .player-id {
         text-decoration: italic;
       }
-      .player-username {
+      .player-username-input, .player-username {
         font-weight: 900;
       }
       .player-host-indicator {

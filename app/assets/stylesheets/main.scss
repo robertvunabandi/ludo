@@ -54,6 +54,14 @@ $s1: 0.25rem;
   text-decoration: inherit;
 }
 
+// colors
+$c-black-03: rgba(0, 0, 0, 0.3);
+$c-black-02: rgba(0, 0, 0, 0.2);
+$c-black-01: rgba(0, 0, 0, 0.1);
+$c-black-005: rgba(0, 0, 0, 0.05);
+$c-err-05: rgba(255, 50, 50, 0.5);
+$c-err-1: rgba(255, 50, 50, 1);
+
 /*
  * COMPOSITES
  * These are made of primitives defined above
@@ -64,8 +72,16 @@ $s1: 0.25rem;
   @include clear-link;
 }
 
-select, input {
+input, select {
   @include f3;
+  @include p1;
+  background-color: $c-black-005;
+}
+input {
+  border: 2px solid $c-black-01;
+}
+input:invalid {
+  border: 2px solid $c-err-05;
 }
 
 .block-center {

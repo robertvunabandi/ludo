@@ -15,6 +15,9 @@
     </span>
   </span>
   <span class='h1'>Waiting for Others to Join</span>
+  <span class='block-center'>
+    You may change your username using the textbox provided below in the meantime!
+  </span>
   <span class='block-center' id='active-players'></span>
 
   <span>
@@ -38,6 +41,12 @@
     <% end %>
   </span>
 </span>
+
+<% # hidden, jank, but I can't find another way to get this id %>
+<input type='text'
+       value='<%= @participant.id %>'
+       style='display: none'
+       id='hidden-id-holder'>
 
 
 <br>

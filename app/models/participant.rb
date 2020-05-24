@@ -1,13 +1,14 @@
 class Participant < ApplicationRecord
   DEFAULT_USERNAME_START = 'anonymous'
-  MIN_USERNAME_LENGTH = 5
+  MIN_USERNAME_LENGTH = 4
+  MAX_USERNAME_LENGTH = 25
 
   has_many :players
 
   validates(
     :username,
     presence: true,
-    length: {minimum: MIN_USERNAME_LENGTH},
+    length: {minimum: MIN_USERNAME_LENGTH, maximum: MAX_USERNAME_LENGTH},
     if: :should_validate?,
   )
 

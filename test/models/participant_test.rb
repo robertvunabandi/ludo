@@ -17,8 +17,20 @@ class ParticipantTest < ActiveSupport::TestCase
   end
 
   test "participant#create: Username must have minimum length" do
-    p = Participant.create(username: "a")
-    assert_not p.save
-    assert_not p.valid?
+    for i in 0...Participant::MIN_USERNAME_LENGTH
+      p = Participant.create(username: "a" * i)
+      assert_not p.save
+      assert_not p.valid?
+    end
+  end
+
+  test "participant#create: Username can't have maximum length" do
+    min = Participant::MAX_USERNAME_LENGTH + 1
+    max = Participant::MAX_USERNAME_LENGTH + 5
+    for i in min..max
+      p = Participant.create(username: "z" * i)
+      assert_not p.save
+      assert_not p.valid?
+    end
   end
 end

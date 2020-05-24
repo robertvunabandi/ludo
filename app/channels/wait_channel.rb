@@ -1,6 +1,7 @@
 class WaitChannel < ApplicationCable::Channel
   # events that we expect to see
   E_APPEAR = "appear"
+  E_CHANGE_USERNAME = "change_username"
   E_DISAPPEAR = "disappear"
   E_PLAYERS = "players"
 
@@ -24,12 +25,6 @@ class WaitChannel < ApplicationCable::Channel
     puts "LEAVING: unsubscribed #{participant.id} from #{@channel}"
   end
 
-  def ping
-    ActionCable.server.broadcast(
-      @channel, event: "ping", participant_id: participant.id
-    )
-  end
-
   def appear
     ActionCable.server.broadcast(
       @channel, event: E_APPEAR, participant_id: participant.id
@@ -42,9 +37,21 @@ class WaitChannel < ApplicationCable::Channel
     )
   end
 
+  def change_username(data)
+    participant.username = data["username"]
+    if participant.save
+      ActionCable.server.broadcast(
+        @channel, event: E_PLAYERS, players: get_players
+      )
+    end
+  end
+
   private
 
-  def get_players
+  def get_players(changer_id=nil)
+    if changer_id.nil?
+      changer_id = participant.id
+    end
     players = Player.where(game_id: @game.id)
     # I need to return a List<{participant_id:str, username:str, is_host:bool}>
     return players.collect{ |p| {participant_id: p.participant.id, username: p.participant.username, is_host: p.is_host}}
