@@ -81,12 +81,19 @@ select, input {
 .btn {
   @include m1;
   @include p2;
-  background-color: red;
+  background-color: rgba(240, 50, 30, 1);
   border: none;
   display: inline-block;
 }
 .btn:hover {
   cursor: pointer;
+}
+.btn:hover, .btn:active {
+  background-color: rgba(245, 100, 95, 1);
+}
+
+.btn:active {
+  background-color: rgba(255, 150, 130, 0.7);
 }
 
 .btn.big {
