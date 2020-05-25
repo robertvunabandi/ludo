@@ -12,6 +12,55 @@ class GameTest < ActiveSupport::TestCase
     assert g.status == Game::STATUS_WAITING
   end
 
+  test "game#is_expired: newly created game should not be expired" do
+    g = Game.create
+    assert g.save
+    assert_not g.is_expired
+  end
+
+  test "game#is_expired: old games in waiting status are expired" do
+    g = Game.create
+    assert g.save
+
+    backtime = 10 * Game::MAX_WAIT_TIME_MIN * Game::SECONDS_IN_MINUTES
+    g.created_at = g.created_at - backtime
+    assert g.save
+
+    assert g.is_expired
+  end
+
+  test "game#is_expired: expired games are also expired" do
+    g = Game.create
+    assert g.save
+
+    g.status = Game::STATUS_CANCELLED_BY_EXPIRATION
+    assert g.save
+
+    assert g.is_expired
+  end
+
+  test "game#is_expired: game in other statuses can't be expired" do
+    g = Game.create
+    assert g.save
+
+    backtime = 10 * Game::MAX_WAIT_TIME_MIN * Game::SECONDS_IN_MINUTES
+    g.created_at = g.created_at - backtime
+    assert g.save
+
+    invalid_status_for_test = [
+      Game::STATUS_CANCELLED_BY_EXPIRATION, Game::STATUS_WAITING
+    ]
+
+    for status in Game::VALID_STATUSES
+      if invalid_status_for_test.include? status
+        next
+      end
+      g.status = status
+      g.save
+      assert_not g.is_expired
+    end
+  end
+
   test "game#set_ongoing: ongoing setter work" do
     g = Game.new
     assert g.save

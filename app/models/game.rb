@@ -7,8 +7,12 @@ class Game < ApplicationRecord
   has_many :rules
   has_many :players
 
+  SECONDS_IN_MINUTES = 60
+  MAX_WAIT_TIME_MIN = 5
+
   STATUS_WAITING = 10
   STATUS_CANCELLED = 11
+  STATUS_CANCELLED_BY_EXPIRATION = 12
   STATUS_ONGOING = 20
   STATUS_COMPLETED = 30
   STATUS_ENDED_BEFORE_COMPLETION = 31
@@ -17,6 +21,7 @@ class Game < ApplicationRecord
   VALID_STATUSES = [
     STATUS_WAITING,
     STATUS_CANCELLED,
+    STATUS_CANCELLED_BY_EXPIRATION,
     STATUS_ONGOING,
     STATUS_COMPLETED,
     STATUS_ENDED_BEFORE_COMPLETION,
@@ -35,6 +40,8 @@ class Game < ApplicationRecord
       return "waiting"
     when STATUS_CANCELLED
       return "cancelled"
+    when STATUS_CANCELLED_BY_EXPIRATION
+      return "cancelled-by-expiration"
     when STATUS_ONGOING
       return "ongoing"
     when STATUS_COMPLETED
@@ -49,12 +56,22 @@ class Game < ApplicationRecord
   def is_waiting
     self.status == STATUS_WAITING
   end
+  def is_expired
+    if self.status == STATUS_CANCELLED_BY_EXPIRATION
+      return true
+    end
+    if self.status != STATUS_WAITING
+      return false
+    end
+    elapsed_min = ((Time.zone.now - self.created_at) / SECONDS_IN_MINUTES)
+    elapsed_min > MAX_WAIT_TIME_MIN && self.status == STATUS_WAITING
+  end
 
   def is_cancelled
-    self.status == STATUS_CANCELLED
+    [STATUS_CANCELLED, STATUS_CANCELLED_BY_EXPIRATION].include?(self.status)
   end
-  def set_cancelled
-    self.status = STATUS_CANCELLED
+  def set_cancelled(expired = false)
+    self.status = expired ? STATUS_CANCELLED_BY_EXPIRATION : STATUS_CANCELLED
   end
 
   def is_ongoing
