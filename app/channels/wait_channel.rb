@@ -3,6 +3,8 @@ class WaitChannel < ApplicationCable::Channel
   E_APPEAR = "appear"
   E_CHANGE_USERNAME = "change_username"
   E_DISAPPEAR = "disappear"
+  E_JOIN = "join"
+  E_PLAY = "play"
   E_PLAYERS = "players"
 
   def self.channel_name(game_id)
@@ -25,6 +27,8 @@ class WaitChannel < ApplicationCable::Channel
     puts "LEAVING: unsubscribed #{participant.id} from #{@channel}"
   end
 
+  # TODO: I will use appear and leave in such a way that it allows me
+  # to tell, in the client, which players are active and which aren't
   def appear
     ActionCable.server.broadcast(
       @channel, event: E_APPEAR, participant_id: participant.id

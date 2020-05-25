@@ -22,9 +22,7 @@
 
   <span>
     <% if @player.is_host %>
-      <span class='btn'>
-        Begin
-      </span>
+      <%= link_to 'Begin', play_path(@game), class: 'btn disabled', id: 'begin-game-btn' %>
     <% else %>
       <span class='btn'>
         Waiting for the host player to begin the game
@@ -44,22 +42,11 @@
 <input type='text'
        value='<%= @participant.id %>'
        style='display: none'
-       id='hidden-id-holder'>
+       id='hidden-id-holder' />
+<input type='text'
+       value='<%= @game.id %>'
+       style='display: none'
+       id='hidden-game-id-holder' />
 
+<% # available: @game, @participant, @player, @hostname %>
 
-<br>
-  <span>FROM BEFORE</span>
-<br>
-<span>
-  Game ID: <%= @game.id %>
-  <br />
-  Status: <%= @game.readable_status %>
-  <br />
-  Status (Repr): <%= @game.status %>
-  <br />
-  Participant ID: <%= @participant.id %>
-  <br />
-  Player ID: <%= @player.id %>
-  <br />
-  Hostname: <%= @hostname %>
-</span>

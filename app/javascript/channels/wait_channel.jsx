@@ -9,6 +9,9 @@ const Socket = {};
 
 /// Events that we are hearing and respond to from the server
 Socket.Respond = {
+  APPEAR: "appear",        // TODO: handle this one
+  DISAPPEAR: "disappear",  // TODO: handle this one
+  PLAY: "play",
   PLAYERS: "players",
 }
 /// Events that we perform
@@ -22,18 +25,21 @@ Socket.const = {
   // find a way to get that value directly from the server
   MIN_USERNAME_LENGTH: 4,
   MAX_USERNAME_LENGTH: 25,
+  MIN_PLAYERS_TO_PLAY: 2,
 }
 /// Where we store data relevant to the socket
 Socket.data = {
   // This id is set in javascript/pack/wait.js, it's pretty hacky
   // but I can't find another way to send this value over
   myId: null,
+  // This id is also set in javascript/pack/wait.js, also hacky
+  gameId: null,
   players: null,
 };
 /// Other functionalities are declared inside the `connected` functions
 Socket.funcs = {}
 
-Socket.socketSubscribe = function socketSubscribe() {
+Socket.socketSubscribe = function socketSubscribe(socketConfig) {
   const subscription_data = {
     channel: "WaitChannel",
     game_id: getGameIdFromUrl(),
@@ -78,15 +84,20 @@ Socket.socketSubscribe = function socketSubscribe() {
      * Called when there's incoming data on the websocket for this channel
      */
     received(data) {
-      console.log("Received data, see below")
-      console.log(data)
       switch (data.event) {
+        case Socket.Respond.PLAY:
+          // reload the page, then in the controller's wait handler,
+          // it will redirect to the play. This helps prevent the
+          // bad authenticity token error.
+          window.location.reload()
+          break
         case Socket.Respond.PLAYERS:
           Socket.data.players = data.players
           this._displayPlayers(Socket.data.players)
+          this._enableBeginBtn(Socket.data.players.length)
           break
         default:
-          console.log(`Unhandled event (${data.event}) received`)
+          console.log(`Unhandled event (${data.event}) received`, data)
           break
       }
     },
@@ -96,81 +107,17 @@ Socket.socketSubscribe = function socketSubscribe() {
     // Things that will allow our app to work
     //
 
-    // TODO: this is not perfect because the update of others interrupt
-    // the updates of some users. so, we should fix that bug by updating
-    // only what changed instead of re-rendering everything from scratch
     _displayPlayers(players) {
-      const playersBox = document.querySelector("#active-players")
       ReactDOM.render(
-        <ActivePlayers players={players} Socket={Socket} />, playersBox
+        <ActivePlayers players={players} Socket={Socket} />,
+        document.querySelector("#active-players"),
       )
-      return
-      clearElement(playersBox)
+    },
 
-      const innerPlayersBox = document.createElement("span")
-      innerPlayersBox.setAttribute("id", "inner-active-players")
-
-      players.forEach((player, index) => {
-        const playerBox = document.createElement("span")
-        playerBox.setAttribute("class", "player")
-
-        const indexBox = document.createElement("span")
-        indexBox.setAttribute("class", "player-index")
-        indexBox.innerText = (index + 1)
-        playerBox.appendChild(indexBox)
-
-        const playerId = document.createElement("span")
-        playerId.setAttribute("class", "player-id")
-        playerId.innerText = "ID:" + player.participant_id
-        playerBox.appendChild(playerId)
-
-        // Allow them to set their usernames here
-        if (player.participant_id === Socket.data.myId) {
-          const playerUsernameInput = document.createElement("input")
-          playerUsernameInput.setAttribute("type", "text")
-          playerUsernameInput.setAttribute("class", "player-username-input")
-          playerUsernameInput.setAttribute(
-            "minlength", Socket.const.MIN_USERNAME_LENGTH
-          )
-          playerUsernameInput.setAttribute(
-            "maxlength", Socket.const.MAX_USERNAME_LENGTH
-          )
-          playerUsernameInput.value = player.username
-          playerBox.appendChild(playerUsernameInput)
-
-          let previousValue = playerUsernameInput.value;
-          const updateUsername = function() {
-            // change only when the name actually changes
-            if (playerUsernameInput.value !== previousValue) {
-              Socket.funcs.changeUsername(playerUsernameInput.value)
-              previousValue = playerUsernameInput.value;
-            }
-          }
-          playerUsernameInput.onchange = updateUsername
-          playerUsernameInput.onkeypress = function(e) {
-            const code = (e.keyCode ? e.keyCode : e.which)
-            if (code === Socket.const.ENTER_KEY_CODE) {
-              updateUsername()
-            }
-          }
-        } else {
-          const playerUsername = document.createElement("span")
-          playerUsername.setAttribute("class", "player-username")
-          playerUsername.innerText = player.username
-          playerBox.appendChild(playerUsername)
-        }
-
-        if (player.is_host) {
-          const playerHostIndicator = document.createElement("span")
-          playerHostIndicator.setAttribute("class", "player-host-indicator")
-          playerHostIndicator.innerText = "host"
-          playerBox.appendChild(playerHostIndicator)
-        }
-
-        innerPlayersBox.appendChild(playerBox)
-      })
-
-      playersBox.appendChild(innerPlayersBox)
+    _enableBeginBtn(numPlayers) {
+      if (numPlayers >= Socket.const.MIN_PLAYERS_TO_PLAY) {
+        socketConfig.enableBeginBtn()
+      }
     },
   });
 }

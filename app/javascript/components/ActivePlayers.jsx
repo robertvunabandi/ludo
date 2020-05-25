@@ -60,7 +60,6 @@ function getPlayerItem(player, index, Socket) {
     ? (<span className="player-you-indicator">you</span>)
     : null
 
-  console.log(TextInput.propTypes)
   return (
     <span className="player" key={index}>
       <span className="player-index">{index + 1}</span>

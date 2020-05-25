@@ -125,11 +125,9 @@ class HomeController < ApplicationController
 
     # CASE 1: ONGOING
     # If the game is ongoing, this means that this player must have left
-    # or something, so here, we just bring them back.
+    # the game or something, so here, we just bring them back to the game
     if @game.is_ongoing
-      error_msg = "The game ID (#{game_id}) you were looking for " \
-        "has already started."
-      redirect_to action: 'play', game_id: @game.id, error_msg: error_msg
+      redirect_to play_path(@game), method: 'post'
       return
     end
 
@@ -148,7 +146,7 @@ class HomeController < ApplicationController
     # handled by the view.
     ActionCable.server.broadcast(
       WaitChannel::channel_name(@game.id),
-      event: "join",
+      event: WaitChannel::E_JOIN,
       participant_id: @participant.id,
       username: @participant.username,
     )
@@ -190,6 +188,38 @@ class HomeController < ApplicationController
   end
 
   def play
+    if !Game.exists? params[:game_id]
+      redirect_to root_url, notice: "the game provided doesn't exist"
+      return
+    end
+    @game = Game.find(params[:game_id])
+
+    if !Player.exists?(game: @game, participant: @participant)
+      redirect_to root_url, notice: "You are not a player of this game"
+      return
+    end
+
+    @player = Player.find_by(game_id: @game.id, participant_id: @participant.id)
+
+    # TODO: maybe I should just let all members broadcast this event
+    if @player.is_host
+      if @game.is_waiting
+        @game.set_ongoing
+        if !@game.save
+          # TODO: ok here we definitely need to put an error...
+          error_msg = "starting the game failed, please try again"
+          redirect_to wait_path(@game), error_msg: error_msg
+        end
+        ActionCable.server.broadcast(
+          WaitChannel::channel_name(@game.id),
+          event: WaitChannel::E_PLAY,
+        )
+      end
+    elsif !@game.is_ongoing
+      # TODO: maybe highlight that we're still waiting for host?
+      redirect_to wait_path(@game), error_msg: "host hasn't started the game yet"
+      return
+    end
   end
 
   def watch_find
