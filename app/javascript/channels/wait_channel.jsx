@@ -1,5 +1,10 @@
 import consumer from "./consumer"
 
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+import ActivePlayers from "components/ActivePlayers"
+
 const Socket = {};
 
 /// Events that we are hearing and respond to from the server
@@ -96,6 +101,10 @@ Socket.socketSubscribe = function socketSubscribe() {
     // only what changed instead of re-rendering everything from scratch
     _displayPlayers(players) {
       const playersBox = document.querySelector("#active-players")
+      ReactDOM.render(
+        <ActivePlayers players={players} Socket={Socket} />, playersBox
+      )
+      return
       clearElement(playersBox)
 
       const innerPlayersBox = document.createElement("span")
