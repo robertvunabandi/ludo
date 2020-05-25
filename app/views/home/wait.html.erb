@@ -35,9 +35,7 @@
     </span>
     <% # hosts can cancel the games and they are the only one who can begin %>
     <% if @player.is_host %>
-      <span class='btn'>
-        Cancel Game
-      </span>
+      <%= link_to 'Cancel Game', cancel_path(@game), class: 'btn', method: 'post' %>
     <% end %>
   </span>
 </span>

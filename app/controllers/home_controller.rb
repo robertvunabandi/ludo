@@ -26,7 +26,7 @@ class HomeController < ApplicationController
   end
 
   def join
-    @error_msg = nil
+    @error_msg = params[:error_msg]
   end
 
   def join_game
@@ -39,16 +39,16 @@ class HomeController < ApplicationController
 
     # Now, check the various game statuses
     if !Game.exists? game_id
-      @error_msg = "The game ID you were looking for (#{game_id}) is invalid."
-      redirect_to action: 'join'
+      error_msg = "The game ID you were looking for (#{game_id}) is invalid."
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
     @game = Game.find(game_id)
     if !@game.is_waiting
-      @error_msg = "The game ID you were looking for (#{game_id}) " \
+      error_msg = "The game ID you were looking for (#{game_id}) " \
         "is not waiting for new players to join. You can try " \
         "watching it or joining a different game."
-      redirect_to action: 'join'
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
 
@@ -62,8 +62,8 @@ class HomeController < ApplicationController
 
     if !@player.valid?
       errors = @player.errors.full_messages.join(", ")
-      @error_msg = "The following errors happened: #{errors}."
-      redirect_to action: 'join'
+      error_msg = "The following errors happened: #{errors}."
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
 
@@ -77,11 +77,11 @@ class HomeController < ApplicationController
 
     # Checking if the game id was provided
     if !params.has_key?(:game_id)
-      @error_msg = "You must provide a game ID in order to join a game."
+      error_msg = "You must provide a game ID in order to join a game."
       # I wanted to set the status to 400, but then it prompts the user
       # that they're being redirected. Is it possible to 400 without
       # prompting user? But anyways, whatever lol
-      redirect_to action: 'join'
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
 
@@ -89,20 +89,20 @@ class HomeController < ApplicationController
     game_id = params[:game_id]
 
     if !Game.exists? game_id
-      @error_msg = "The game ID you were looking for (#{game_id}) is invalid."
-      redirect_to action: 'join'
+      error_msg = "The game ID (#{game_id}) you were looking for is invalid."
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
     @game = Game.find(game_id)
     if @game.is_ended
-      @error_msg = "The game ID you were looking for (#{game_id}) " \
+      error_msg = "The game ID (#{game_id}) you were looking for " \
         "has already ended."
-      redirect_to action: 'join'
+      redirect_to action: 'join', error_msg: error_msg
     end
     if @game.is_cancelled
-      @error_msg = "The game ID you were looking for (#{game_id}) " \
+      error_msg = "The game ID (#{game_id}) you were looking for " \
         "was cancelled."
-      redirect_to action: 'join'
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
     # TODO: maybe also check that the game hasn't expired?
@@ -113,11 +113,11 @@ class HomeController < ApplicationController
     # at the wait link from an invalid place (i.e., they just type a
     # random URL), so we check that below.
     if !Player.exists?(game_id: @game.id, participant_id: @participant.id)
-      @error_msg = "It seems like you are not a player of the game ID " \
+      error_msg = "It seems like you are not a player of the game ID " \
         "(#{game_id}) you are looking for. Try joining through the join " \
         "link. Or, if you'd like to watch that game, use the watch " \
         "option instead."
-      redirect_to action: 'join'
+      redirect_to action: 'join', error_msg: error_msg
       return
     end
 
@@ -127,9 +127,9 @@ class HomeController < ApplicationController
     # If the game is ongoing, this means that this player must have left
     # or something, so here, we just bring them back.
     if @game.is_ongoing
-      @error_msg = "The game ID you were looking for (#{game_id}) " \
+      error_msg = "The game ID (#{game_id}) you were looking for " \
         "has already started."
-      redirect_to action: 'play', game_id: @game.id
+      redirect_to action: 'play', game_id: @game.id, error_msg: error_msg
       return
     end
 
@@ -154,11 +154,46 @@ class HomeController < ApplicationController
     )
   end
 
+  def cancel
+    if !Game.exists? params[:game_id]
+      redirect_to root_url, notice: "the game provided doesn't exist"
+      return
+    end
+
+    @game = Game.find(params[:game_id])
+    if !@game.is_waiting
+      notice = "A game may only be cancelled if it's waiting to start"
+      redirect_to root_url, notice: notice
+      return
+    end
+
+    if !Player.exists?(game: @game, participant: @participant)
+      notice = "You are not a player of this game. Only the host " \
+        "of that game may cancel it."
+      redirect_to root_url, notice: notice
+      return
+    end
+
+    @player = Player.find_by(game_id: @game.id, participant_id: @participant.id)
+    if !@player.is_host
+      redirect_to root_url, notice: "Only the host may cancel a game"
+      return
+    end
+
+    @game.set_cancelled
+    if @game.save
+      notice = "That game was cancelled successfully"
+    else
+      notice = "An error occurred while cancelling the game"
+    end
+    redirect_to root_url, notice: notice
+  end
+
   def play
   end
 
   def watch_find
-    @error_msg = nil
+    @error_msg = params[:error_msg]
   end
 
   def watch

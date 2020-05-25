@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   post '/join', to: "home#join_game"
   get '/wait', to: 'home#wait'
   get '/wait/:game_id', to: 'home#wait'
+  post '/cancel/:game_id', to: 'home#cancel', as: 'cancel'
   get '/watch', to: 'home#watch_find'
   get '/watch/:game_id', to: 'home#watch'
 end

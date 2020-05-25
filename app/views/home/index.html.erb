@@ -3,6 +3,11 @@
 <% end %>
 <%= link_to 'Ludo', root_path, class: 'title' %>
 
+<% # TODO: temporarily putting these flash here up top, NOTE: error-box is not necessarily right %>
+<% flash.each do |name, msg| -%>
+  <%= content_tag :div, msg, class: 'error-box' %>
+<% end -%>
+
 <div class='center'>
   <%= link_to 'New', new_path, id: 'home-btn-new', class: 'btn big' %>
   <%= link_to 'Join', join_path, id: 'home-btn-join', class: 'btn big' %>
