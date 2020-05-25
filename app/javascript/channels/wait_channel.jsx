@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom'
 
 import ActivePlayers from "components/ActivePlayers"
 
-const Socket = {};
+const Socket = {}
 
 /// Events that we are hearing and respond to from the server
 Socket.Respond = {
@@ -42,7 +42,7 @@ Socket.funcs = {}
 Socket.socketSubscribe = function socketSubscribe(socketConfig) {
   const subscription_data = {
     channel: "WaitChannel",
-    game_id: getGameIdFromUrl(),
+    game_id: Socket.data.gameId,
   }
   consumer.subscriptions.create(subscription_data, {
     //
@@ -55,7 +55,7 @@ Socket.socketSubscribe = function socketSubscribe(socketConfig) {
      * Called when the subscription is ready for use on the server
      */
     connected() {
-      console.log("Connected to Wait WaitChannel")
+      console.log("Connected to WaitChannel")
 
       const self = this
       Socket.funcs.changeUsername = function changeUsername(username) {
@@ -121,19 +121,5 @@ Socket.socketSubscribe = function socketSubscribe(socketConfig) {
     },
   });
 }
-
-function getGameIdFromUrl() {
-  // remove anything that comes after the "?" in the URL if any
-  const url = window.location.href.replace(/\?.*$/, "")
-  const tokens = url.split("/")
-  return parseInt(tokens[tokens.length - 1])
-}
-
-function clearElement(elm) {
-  while (elm.firstChild) {
-    elm.removeChild(elm.firstChild)
-  }
-}
-
 
 export default Socket;

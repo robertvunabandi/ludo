@@ -1,25 +1,18 @@
-class WaitChannel < ApplicationCable::Channel
-  # events that we expect to see
+class PlayChannel < ApplicationCable::Channel
+  # events that we expect to see for PLAY
   E_APPEAR = "appear"
-  E_CHANGE_USERNAME = "change_username"
   E_DISAPPEAR = "disappear"
-  E_JOIN = "join"
-  E_PLAY = "play"
-  E_PLAYERS = "players"
+  E_MOVE = "move"
 
   def self.channel_name(game_id)
-    return "waiting_space:#{game_id}"
+    return "play_space:#{game_id}"
   end
 
   def subscribed
-    # get the game id from the parameters
+    # stream_from "some_channel"
     @game = Game.find(params["game_id"])
-    @channel = WaitChannel::channel_name(@game.id)
+    @channel = PlayChannel::channel_name(@game.id)
     stream_from @channel
-
-    ActionCable.server.broadcast(
-      @channel, event: E_PLAYERS, players: get_players
-    )
   end
 
   def unsubscribed
@@ -27,8 +20,8 @@ class WaitChannel < ApplicationCable::Channel
     puts "LEAVING: unsubscribed #{participant.id} from #{@channel}"
   end
 
-  # TODO: I will use appear and leave in such a way that it allows me
-  # to tell, in the client, which players are active and which aren't
+  # DEFINED ACTIONS
+
   def appear
     ActionCable.server.broadcast(
       @channel, event: E_APPEAR, participant_id: participant.id
@@ -41,13 +34,14 @@ class WaitChannel < ApplicationCable::Channel
     )
   end
 
-  def change_username(data)
-    participant.username = data["username"]
-    if participant.save
-      ActionCable.server.broadcast(
-        @channel, event: E_PLAYERS, players: get_players
-      )
-    end
+  def move(data)
+    rolls = data["rolls"]
+    actions = data["actions"]
+    pid = data["participant_id"]
+    # TODO: do something with the rolls and actions, maybe
+    # some validations too. I think here we need to determine
+    # whose turn it is. I'll probably do it naively first, then
+    # go from there.
   end
 
   private

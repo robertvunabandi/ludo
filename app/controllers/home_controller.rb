@@ -220,6 +220,10 @@ class HomeController < ApplicationController
       redirect_to wait_path(@game), error_msg: "host hasn't started the game yet"
       return
     end
+
+    # now fetch all the players in this game
+    players = Player.where(game_id: @game.id)
+    @players = players.collect{ |p| {participant_id: p.participant.id, username: p.participant.username, is_host: p.is_host}}
   end
 
   def watch_find

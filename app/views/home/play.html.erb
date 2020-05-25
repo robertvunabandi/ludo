@@ -1,1 +1,29 @@
+<% content_for :head do %>
+  <%= stylesheet_link_tag 'play', media: 'all', 'data-turbolinks-track': 'reload' %>
+  <%= javascript_pack_tag 'play' %>
+<% end %>
+
+<%= link_to 'Ludo', root_path, class: 'title' %>
+
 HELLO!!!
+
+<% # hidden, jank, but I can't find another way to get this id %>
+<input type='text'
+       value='<%= @participant.id %>'
+       style='display: none'
+       id='hidden-id-holder' />
+<input type='text'
+       value='<%= @game.id %>'
+       style='display: none'
+       id='hidden-game-id-holder' />
+<div id='hidden-game-players-holder' style='display: none'>
+  <% for player in @players do %>
+    <span>
+      <input type='text' value='<%= player[:participant_id] %>' />
+      <input type='text' value='<%= player[:username] %>' />
+      <input type='text' value='<%= player[:is_host] %>' />
+    </span>
+  <% end %>
+</div>
+
+<% # available: @game, @participant, @player, @players %>
