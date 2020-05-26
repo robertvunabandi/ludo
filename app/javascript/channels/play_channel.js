@@ -34,6 +34,14 @@ Socket.socketSubscribe = function socketSubscribe() {
   // Called when the subscription is ready for use on the server
   options.connected = function connected() {
     this.perform(Socket.Perform.APPEAR)
+
+    const self = this
+    Socket.funcs.sendRolls = function sendRolls(rolls) {
+      self.perform("roll", {participant_id: Socket.data.myId, rolls})
+    }
+    Socket.funcs.sendAction = function sendAction(action) {
+      self.perform("action", {participant_id: Socket.data.myId, action})
+    }
   }
 
   // Called when the subscription has been terminated by the server

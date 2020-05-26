@@ -111,7 +111,7 @@ class Rule < ApplicationRecord
     'graduation_lane_model' => {
       'valid': [1, 2, 3],
       'default': 3,
-      'select': {'no restriction': 1, 'strict': 2, 'strict-after-entry': 3},
+      'select': {'no-restriction': 1, 'strict': 2, 'strict-after-entry': 3},
       'description': 'Select how graduation works. With no restriction, you can roll anything to move up the graduation late. With \'strict\', one must roll a 1 to move to the first cell, then 2 for the second cell, and so on. In addition, they must first get to the zero-th cell. \'strict-after-entry\' is the same as strict except you can get directly into the first cell from any roll',
     },
 
