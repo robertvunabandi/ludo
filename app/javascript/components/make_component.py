@@ -15,7 +15,11 @@ PROP_TYPES_END = "}"
 DEFAULT_PROPS_START = "  static defaultProps = {"
 DEFAULT_PROPS_END = "}"
 REST = """
-  render () {
+  constructor(props) {
+    super(props)
+  }
+
+  render() {
     return <<COMPONENT-NAME>View {...this.state} />
   }
 }
