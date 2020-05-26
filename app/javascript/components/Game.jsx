@@ -124,9 +124,11 @@ export default class Game extends React.Component {
 function GameView(props) {
   const square_width = props.side_length / 15
   const house_side_length = square_width * 6
-  const house_push = square_width * (15 - house_side_length)
+  const house_push = props.side_length - house_side_length
   return (
-    <svg width={props.side_length} height={props.side_length}>
+    <svg
+      width={props.side_length} height={props.side_length} id="game-wrapper"
+    >
       <GameHouse
         color={Game.BLUE}
         side_length={house_side_length}

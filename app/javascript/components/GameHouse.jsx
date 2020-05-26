@@ -32,16 +32,16 @@ export default class GameHouse extends React.Component {
 }
 
 function GameHouseView(props) {
+  // TODO: The styling below is temporary
   return (
     <g>
       <rect
         x={props.left_push}
-        y={props.right_push}
+        y={props.top_push}
         width={props.side_length}
         height={props.side_length}
-        {/* todo: temporarily stylings */}
         stroke="black"
-        strokeWidth="5"
+        strokeWidth="1"
         fill={props.color}
       />
     </g>

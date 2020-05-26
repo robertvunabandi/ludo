@@ -171,7 +171,6 @@ input:invalid {
 
 .title {
   @include f9;
-  @include m1;
   display: block;
   padding: $s1 $s1 $s3 $s1;
   text-align: center;

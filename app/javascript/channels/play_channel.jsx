@@ -1,9 +1,16 @@
 import consumer from "./consumer"
 
+import React from "react"
+import ReactDOM from "react-dom"
+
+import Game from "components/Game"
+
 // The structure is similar to channel/wait_channel.jsx, so see
 // there for more context
 const Socket = {}
 Socket.Respond = {
+  START: "start",
+  // TODO: we changed move with action and roll I believe
   MOVE: "move",
 }
 Socket.Perform = {
@@ -16,6 +23,7 @@ Socket.data = {
   myId: null,
   gameId: null,
   players: null,
+  firstDisplayHappened: false,
 }
 Socket.funcs = {}
 
@@ -56,6 +64,14 @@ Socket.socketSubscribe = function socketSubscribe() {
   // Called when there's incoming data on the websocket for this channel
   options.received = function received(data) {
     switch (data.event) {
+      case Socket.Respond.START:
+        if (!Socket.data.firstDisplayHappened) {
+          Socket.data.firstDisplayHappened = true
+          this._displayGame(data)
+          return
+        }
+        console.log("Already displayed!")
+        break
       case Socket.Respond.MOVE:
         console.log(`(not-implemented) [${data.event}] event received`, data)
         break
@@ -69,6 +85,41 @@ Socket.socketSubscribe = function socketSubscribe() {
   // APP FUNCTIONALITIES
   // Things that will allow our app to work
   //
+
+  options._displayGame = function _displayGame(displayData) {
+    // doing this temporarily
+    console.log(displayData)
+    displayData.rules = this._fixRuleTypes(displayData.rules)
+    const titleHeight = document.querySelector(".title").clientHeight
+    const smallest_length = Math.min(window.innerHeight, window.innerWidth)
+    const side_length = smallest_length - titleHeight - 50
+    ReactDOM.render(
+      <Game
+        side_length={side_length}
+        rules={displayData.rules}
+        mappings={{red: 100, green: 200, yellow: 300, blue: 400}}
+        is_turn_order_determination={displayData.is_turn_order_determination}
+        turn_info={displayData.turn_info}
+        sendRolls={Socket.funcs.sendRolls}
+        sendAction={Socket.funcs.sendAction}
+      />,
+      document.querySelector("#game-box"),
+    )
+  }
+
+  options._fixRuleTypes = function(rules) {
+    rules.dice_count = parseInt(rules.dice_count)
+    const boolean_keys = [
+      "roll_after_six",
+      "allow_square_doubling",
+      "capture_into_prison",
+      "roll_six_to_graduate"
+    ]
+    boolean_keys.forEach((r) => {
+      rules[r] = rules[r] === "yes"
+    })
+    return rules
+  }
 
   //
   // FINALLY, subscribe to the channel

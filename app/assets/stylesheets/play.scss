@@ -1,3 +1,10 @@
 @import "main";
 
-// TODO: The rest lol
+#game-box {
+  border-top: 1px solid black;
+  #game-wrapper {
+    display: block;
+    margin: 0 auto;
+    margin-top: 1rem;
+  }
+}

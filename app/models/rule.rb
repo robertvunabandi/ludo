@@ -142,6 +142,11 @@ class Rule < ApplicationRecord
   end
   validates_with ValueValidator
 
+
+  def human_value
+    RULE_SPECS[self.name][:select].invert[self.value]
+  end
+
   # 'dice_count'
   # 'roll_after_six'
   # 'roll_after_six_condition'
