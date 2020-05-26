@@ -1,6 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
 
+import GameHouse from "components/GameHouse"
+
 
 const ValidDiceCounts = [1, 2, 3]
 const RollAfterSixCondition = {Any: "any", All: "all"}
@@ -92,6 +94,10 @@ export default class Game extends React.Component {
 
   // OTHER STATIC FIELDS
 
+  static BLUE = "blue"
+  static RED = "red"
+  static GREEN = "green"
+  static YELLOW = "yellow"
   static COLORS = ["red", "green", "yellow", "blue"]
 
   constructor(props) {
@@ -108,14 +114,48 @@ export default class Game extends React.Component {
   }
 
   render() {
-    return <GameView {...this.state} />
+    return <GameView
+      side_length={this.props.side_length}
+      mappings={this.props.mappings}
+    />
   }
 }
 
 function GameView(props) {
+  const square_width = props.side_length / 15
+  const house_side_length = square_width * 6
+  const house_push = square_width * (15 - house_side_length)
   return (
-    <span>
-    </span>
+    <svg width={props.side_length} height={props.side_length}>
+      <GameHouse
+        color={Game.BLUE}
+        side_length={house_side_length}
+        left_push={0}
+        top_push={0}
+        owner={props.mappings[Game.BLUE]}
+      />
+      <GameHouse
+        color={Game.RED}
+        side_length={house_side_length}
+        left_push={house_push}
+        top_push={0}
+        owner={props.mappings[Game.RED]}
+      />
+      <GameHouse
+        color={Game.GREEN}
+        side_length={house_side_length}
+        left_push={house_push}
+        top_push={house_push}
+        owner={props.mappings[Game.GREEN]}
+      />
+      <GameHouse
+        color={Game.YELLOW}
+        side_length={house_side_length}
+        left_push={0}
+        top_push={house_push}
+        owner={props.mappings[Game.YELLOW]}
+      />
+    </svg>
   )
 }
 
