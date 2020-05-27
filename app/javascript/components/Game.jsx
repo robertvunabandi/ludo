@@ -1,6 +1,9 @@
 import React from "react"
 import PropTypes from "prop-types"
 
+import C from "utils/constants"
+import GameArea from "components/GameArea"
+import GameCenter from "components/GameCenter"
 import GameHouse from "components/GameHouse"
 
 
@@ -152,32 +155,73 @@ function GameView(props) {
       width={props.side_length} height={props.side_length} id="game-wrapper"
     >
       <GameHouse
-        color={Game.BLUE}
+        color={C.color.BLUE}
         side_length={house_side_length}
+        square_side_length={square_width}
         left_push={0}
         top_push={0}
-        owner={props.mappings[Game.BLUE]}
+        username={"Anonymous"}
+        textPosition={C.direction.UP}
       />
       <GameHouse
-        color={Game.RED}
+        color={C.color.RED}
         side_length={house_side_length}
+        square_side_length={square_width}
         left_push={house_push}
         top_push={0}
-        owner={props.mappings[Game.RED]}
+        username={"Anonymous-923"}
+        textPosition={C.direction.UP}
       />
       <GameHouse
-        color={Game.GREEN}
+        color={C.color.GREEN}
         side_length={house_side_length}
+        square_side_length={square_width}
         left_push={house_push}
         top_push={house_push}
-        owner={props.mappings[Game.GREEN]}
+        username={"robertv-sample-user"}
+        textPosition={C.direction.DOWN}
       />
       <GameHouse
-        color={Game.YELLOW}
+        color={C.color.YELLOW}
         side_length={house_side_length}
+        square_side_length={square_width}
         left_push={0}
         top_push={house_push}
-        owner={props.mappings[Game.YELLOW]}
+        username={"JustTestingUsernamesL"}
+        textPosition={C.direction.DOWN}
+      />
+      <GameArea
+        color={C.color.RED}
+        direction={C.direction.DOWN}
+        left_push={house_side_length}
+        top_push={0}
+        square_side_length={square_width}
+      />
+      <GameArea
+        color={C.color.GREEN}
+        direction={C.direction.LEFT}
+        left_push={house_push}
+        top_push={house_side_length}
+        square_side_length={square_width}
+      />
+      <GameArea
+        color={C.color.YELLOW}
+        direction={C.direction.UP}
+        left_push={house_side_length}
+        top_push={house_push}
+        square_side_length={square_width}
+      />
+      <GameArea
+        color={C.color.BLUE}
+        direction={C.direction.RIGHT}
+        left_push={0}
+        top_push={house_side_length}
+        square_side_length={square_width}
+      />
+      <GameCenter
+        left_push={house_side_length}
+        top_push={house_side_length}
+        side_length={square_width * 3}
       />
     </svg>
   )
