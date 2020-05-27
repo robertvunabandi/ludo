@@ -17,9 +17,6 @@ const GraduationLaneModels = Object.values(GraduationLaneModel)
 
 export default class Game extends React.Component {
   static propTypes = {
-    // this must be provided in pixels, this is used to display the game
-    side_length: PropTypes.number.isRequired,
-
     // game rules
     rules: PropTypes.shape({
       dice_count: PropTypes.oneOf(ValidDiceCounts).isRequired,
@@ -104,8 +101,21 @@ export default class Game extends React.Component {
     super(props)
 
     this.state = {
-      numPlayers: Game._numPlayers(props.mappings),
+      // TODO: maybe it's better to pass the side length function
+      // from the props
+      side_length: Game._getSideLength(),
+      num_players: Game._numPlayers(props.mappings),
     }
+
+    this.resizeBasedOnWindow = this.resizeBasedOnWindow.bind(this)
+
+    window.addEventListener("resize", this.resizeBasedOnWindow)
+  }
+
+  static _getSideLength() {
+    const titleHeight = document.querySelector(".title").clientHeight
+    const smallest_length = Math.min(window.innerHeight, window.innerWidth)
+    return smallest_length - titleHeight - 50
   }
 
   static _numPlayers(mappings) {
@@ -113,9 +123,21 @@ export default class Game extends React.Component {
     return Game.COLORS.filter(filter).length
   }
 
+  resizeBasedOnWindow() {
+    const side_length = Game._getSideLength()
+
+    // update the state only if the side length has changed
+    this.setState((state, props) => {
+      if (state.side_length !== side_length) {
+        return {side_length}
+      }
+      return {}
+    })
+  }
+
   render() {
     return <GameView
-      side_length={this.props.side_length}
+      side_length={this.state.side_length}
       mappings={this.props.mappings}
     />
   }

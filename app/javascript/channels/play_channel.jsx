@@ -90,12 +90,8 @@ Socket.socketSubscribe = function socketSubscribe() {
     // doing this temporarily
     console.log(displayData)
     displayData.rules = this._fixRuleTypes(displayData.rules)
-    const titleHeight = document.querySelector(".title").clientHeight
-    const smallest_length = Math.min(window.innerHeight, window.innerWidth)
-    const side_length = smallest_length - titleHeight - 50
     ReactDOM.render(
       <Game
-        side_length={side_length}
         rules={displayData.rules}
         mappings={{red: 100, green: 200, yellow: 300, blue: 400}}
         is_turn_order_determination={displayData.is_turn_order_determination}
