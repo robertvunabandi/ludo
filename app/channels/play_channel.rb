@@ -2,8 +2,8 @@ class PlayChannel < ApplicationCable::Channel
   # events that we expect to see for PLAY
   E_APPEAR = "appear"
   E_DISAPPEAR = "disappear"
-  E_MOVE = "move"
   E_START = "start"
+  E_HISTORY = "history"
 
   def self.channel_name(game_id)
     return "play_space:#{game_id}"
@@ -43,23 +43,19 @@ class PlayChannel < ApplicationCable::Channel
     )
   end
 
-  def move(data)
-    rolls = data["rolls"]
-    actions = data["actions"]
-    pid = data["participant_id"]
-    # TODO: do something with the rolls and actions, maybe
-    # some validations too. I think here we need to determine
-    # whose turn it is. I'll probably do it naively first, then
-    # go from there.
+  def roll(data)
+    # TODO: perform the roll, then send a history
+  end
+
+  def action(data)
+    # TODO: perform the action, then send a history
+  end
+
+  def history_request(data)
+    # TODO: send all the necessary history for that index through E_HISTORY
   end
 
   private
-
-  def get_players
-    players = Player.where(game_id: @game.id)
-    # I need to return a List<{participant_id:str, username:str, is_host:bool}>
-    return players.collect{ |p| {participant_id: p.participant.id, username: p.participant.username, is_host: p.is_host}}
-  end
 
   def get_rules
     rules = @game.rules.collect{|r| {name: r[:name],  value: r.human_value}}

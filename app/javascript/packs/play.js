@@ -1,5 +1,8 @@
 import Socket from "channels/play_channel"
 
+import C from "utils/constants"
+
+
 const AppPlay = {}
 
 window.addEventListener("load", main)
@@ -37,5 +40,17 @@ function getPlayers() {
     })
   }
   playersHolder.remove()
-  return players
+
+  // set the colors of the players
+  const colors = []
+  if (players.length == 2) {
+    colors.push(C.color.RED)
+    colors.push(C.color.YELLOW)
+  } else {
+    players.forEach((_, i) => colors.push(C.COLORS[i]))
+  }
+  return players.map((p, i) => {
+    p.color = colors[i]
+    return p
+  })
 }

@@ -9,14 +9,17 @@ import Game from "components/Game"
 // there for more context
 const Socket = {}
 Socket.Respond = {
+  APPEAR: "appear",
+  DISAPPEAR: "disappear",
   START: "start",
-  // TODO: we changed move with action and roll I believe
-  MOVE: "move",
+  HISTORY: "history",
 }
 Socket.Perform = {
-  APPEAR: "appear",        // TODO: handle this one
-  DISAPPEAR: "disappear",  // TODO: handle this one
-  MOVE: "move",
+  APPEAR: "appear",
+  DISAPPEAR: "disappear",
+  ACTION: "action",
+  ROLL: "roll",
+  HISTORY_REQUEST: "history_request",
 }
 Socket.const = {}
 Socket.data = {
@@ -25,7 +28,12 @@ Socket.data = {
   players: null,
   firstDisplayHappened: false,
 }
-Socket.funcs = {}
+Socket.funcs = {
+  setHistoryFunction(handleReceiveHistory) {
+    Socket.funcs.handleReceiveHistory = handleReceiveHistory
+  },
+  handleReceiveHistory: () => null,
+}
 
 Socket.socketSubscribe = function socketSubscribe() {
   const subscription_data = {
@@ -45,10 +53,20 @@ Socket.socketSubscribe = function socketSubscribe() {
 
     const self = this
     Socket.funcs.sendRolls = function sendRolls(rolls) {
-      self.perform("roll", {participant_id: Socket.data.myId, rolls})
+      self.perform(
+        Socket.Perform.ROLL, {participant_id: Socket.data.myId, rolls}
+      )
     }
     Socket.funcs.sendAction = function sendAction(action) {
-      self.perform("action", {participant_id: Socket.data.myId, action})
+      self.perform(
+        Socket.Perform.ACTION, {participant_id: Socket.data.myId, action}
+      )
+    }
+    Socket.funcs.requestHistory = function requestHistory(index) {
+      self.perform(Socket.Perform.HISTORY_REQUEST, {index})
+    }
+    Socket.funcs.requestMaxHistory = function requestMaxHistory() {
+      self.perform(Socket.Perform.HISTORY_REQUEST, {index: -1})
     }
   }
 
@@ -64,13 +82,21 @@ Socket.socketSubscribe = function socketSubscribe() {
   // Called when there's incoming data on the websocket for this channel
   options.received = function received(data) {
     switch (data.event) {
+      case Socket.Respond.APPEAR:
+        // TODO: handle appear if needed
+        break
+      case Socket.Respond.DISAPPEAR:
+        // TODO: handle disappear if needed
+        break
       case Socket.Respond.START:
         if (!Socket.data.firstDisplayHappened) {
           Socket.data.firstDisplayHappened = true
           this._displayGame(data)
           return
         }
-        console.log("Already displayed!")
+        break
+      case Socket.Respond.HISTORY:
+        Socket.funcs.handleReceiveHistory(data.history)
         break
       case Socket.Respond.MOVE:
         console.log(`(not-implemented) [${data.event}] event received`, data)
@@ -87,23 +113,29 @@ Socket.socketSubscribe = function socketSubscribe() {
   //
 
   options._displayGame = function _displayGame(displayData) {
-    // doing this temporarily
+    // TODO: we haven't handled turn_info (also remove this log)
     console.log(displayData)
+
     displayData.rules = this._fixRuleTypes(displayData.rules)
     ReactDOM.render(
       <Game
         rules={displayData.rules}
-        mappings={{red: 100, green: 200, yellow: 300, blue: 400}}
+        my_id={Socket.data.myId}
+        players={Socket.data.players}
         is_turn_order_determination={displayData.is_turn_order_determination}
         turn_info={displayData.turn_info}
+        getSideLength={this._getSideLength}
         sendRolls={Socket.funcs.sendRolls}
         sendAction={Socket.funcs.sendAction}
+        setHistoryFunction={Socket.funcs.setHistoryFunction}
+        requestHistory={Socket.funcs.requestHistory}
+        requestMaxHistory={Socket.funcs.requestMaxHistory}
       />,
       document.querySelector("#game-box"),
     )
   }
 
-  options._fixRuleTypes = function(rules) {
+  options._fixRuleTypes = function _fixRuleTypes(rules) {
     rules.dice_count = parseInt(rules.dice_count)
     const boolean_keys = [
       "roll_after_six",
@@ -115,6 +147,12 @@ Socket.socketSubscribe = function socketSubscribe() {
       rules[r] = rules[r] === "yes"
     })
     return rules
+  }
+
+  options._getSideLength = function _getSideLength() {
+    const titleHeight = document.querySelector(".title").clientHeight
+    const smallest_length = Math.min(window.innerHeight, window.innerWidth)
+    return smallest_length - titleHeight - 50
   }
 
   //

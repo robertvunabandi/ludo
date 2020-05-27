@@ -31,6 +31,10 @@ export default class Game extends React.Component {
       roll_six_to_graduate: PropTypes.bool.isRequired,
     }).isRequired,
 
+    // the participant id of the player that is playing this
+    // game in this instance
+    my_id: PropTypes.number.isRequired,
+
     // This is a mapping from player color to player
     // participant id. Red is always the host, and there will
     // always be two available because we need at least two
@@ -38,12 +42,12 @@ export default class Game extends React.Component {
     // opponent will be yellow. If there's 3, the 3 colors in
     // play will be red, green, and yellow. This also
     // implicitly gives us the number of players.
-    mappings: PropTypes.shape({
-      red: PropTypes.number.isRequired,
-      green: PropTypes.number,
-      yellow: PropTypes.number,
-      blue: PropTypes.number,
-    }).isRequired,
+    players: PropTypes.arrayOf(PropTypes.shape({
+      color: PropTypes.string.isRequired,
+      is_host: PropTypes.bool.isRequired,
+      participant_id: PropTypes.number.isRequired,
+      username: PropTypes.string.isRequired,
+    })).isRequired,
 
     // when true, it means we're trying to determine who goes
     // first at the beginning of the game. the server will
@@ -88,46 +92,67 @@ export default class Game extends React.Component {
     // of {1, 2, 3, 4} (this move accept a specific piece).
     // If the action is 'null' or 'stop', then the piece is null.
     sendAction: PropTypes.func.isRequired,
+    // In order to prevent passing the entire socket over, we use
+    // this function to set the history received function handler.
+    // After all, any history change is mainly affected within the
+    // game and not outside. So, this function is called to set
+    // the history function handler to something that the Game uses
+    // when we receive history. See handleReceiveHistory
+    setHistoryFunction: PropTypes.func.isRequired,
+    // in some cases, we may be missing some history. This function
+    // is used to request it. it only takes the index of the
+    // requested history. Nothing will happen if the index is above
+    // the max so far.
+    requestHistory: PropTypes.func.isRequired,
+    // similar to the above, this one asks for the last history. This
+    // can be used to ensure that we're in sync.
+    requestMaxHistory: PropTypes.func.isRequired,
   }
 
   static defaultProps = {}
 
-  // OTHER STATIC FIELDS
-
-  static BLUE = "blue"
-  static RED = "red"
-  static GREEN = "green"
-  static YELLOW = "yellow"
-  static COLORS = ["red", "green", "yellow", "blue"]
+  static REQUEST_MAX_HISTORY_INTERVAL = 4000
 
   constructor(props) {
     super(props)
 
     this.state = {
-      // TODO: maybe it's better to pass the side length function
-      // from the props
-      side_length: Game._getSideLength(),
-      num_players: Game._numPlayers(props.mappings),
+      side_length: this.props.getSideLength(),
+      // The game history is maintained by this
+      history: [],
+      history_received: {},
+      max_index: -1,
     }
 
+    this.handleReceiveHistory = this.handleReceiveHistory.bind(this)
+    this.props.setHistoryFunction(this.handleReceiveHistory)
+
     this.resizeBasedOnWindow = this.resizeBasedOnWindow.bind(this)
-
     window.addEventListener("resize", this.resizeBasedOnWindow)
+
+    // to ensure we're up to date, we request this every this much
+    // milliseconds intervals
+    // TODO: this can be kind of dangerous because it'll just
+    // bombard the server... maybe request only when unsure?
+    // I commented this out for now while we're in development
+    // setInterval(this.props.requestMaxHistory, Game.REQUEST_MAX_HISTORY_INTERVAL)
   }
 
-  static _getSideLength() {
-    const titleHeight = document.querySelector(".title").clientHeight
-    const smallest_length = Math.min(window.innerHeight, window.innerWidth)
-    return smallest_length - titleHeight - 50
-  }
-
-  static _numPlayers(mappings) {
-    const filter = color => ((typeof mappings[color]) === "number")
-    return Game.COLORS.filter(filter).length
+  handleReceiveHistory(history) {
+    // TODO: implement this based on the logic above
+    // if we receive something we already have, we ignore it
+    // if we receive something that's next of what we have, we
+    //   store it and update view (done automatically)
+    // if we receive something that's more than what is next of
+    //   what we have, we request all the missing histories but
+    //   still store it. We use history_received as the source
+    //   of truth for all we have. history instead will be
+    //   nicely ordered. then, we use that to display the game.
+    console.log(history)
   }
 
   resizeBasedOnWindow() {
-    const side_length = Game._getSideLength()
+    const side_length = this.props.getSideLength()
 
     // update the state only if the side length has changed
     this.setState((state, props) => {
@@ -141,7 +166,7 @@ export default class Game extends React.Component {
   render() {
     return <GameView
       side_length={this.state.side_length}
-      mappings={this.props.mappings}
+      players={this.props.players}
     />
   }
 }
@@ -150,6 +175,12 @@ function GameView(props) {
   const square_width = props.side_length / 15
   const house_side_length = square_width * 6
   const house_push = props.side_length - house_side_length
+
+  const color_to_username = {}
+  props.players.forEach(p => {
+    color_to_username[p.color] = p.username
+  })
+
   return (
     <svg
       width={props.side_length} height={props.side_length} id="game-wrapper"
@@ -160,7 +191,7 @@ function GameView(props) {
         square_side_length={square_width}
         left_push={0}
         top_push={0}
-        username={"Anonymous"}
+        username={color_to_username[C.color.BLUE]}
         textPosition={C.direction.UP}
       />
       <GameHouse
@@ -169,7 +200,7 @@ function GameView(props) {
         square_side_length={square_width}
         left_push={house_push}
         top_push={0}
-        username={"Anonymous-923"}
+        username={color_to_username[C.color.RED]}
         textPosition={C.direction.UP}
       />
       <GameHouse
@@ -178,7 +209,7 @@ function GameView(props) {
         square_side_length={square_width}
         left_push={house_push}
         top_push={house_push}
-        username={"robertv-sample-user"}
+        username={color_to_username[C.color.GREEN]}
         textPosition={C.direction.DOWN}
       />
       <GameHouse
@@ -187,7 +218,7 @@ function GameView(props) {
         square_side_length={square_width}
         left_push={0}
         top_push={house_push}
-        username={"JustTestingUsernamesL"}
+        username={color_to_username[C.color.YELLOW]}
         textPosition={C.direction.DOWN}
       />
       <GameArea

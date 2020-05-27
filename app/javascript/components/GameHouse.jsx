@@ -10,7 +10,7 @@ export default class GameHouse extends React.Component {
     side_length: PropTypes.number.isRequired,
     left_push: PropTypes.number.isRequired,
     top_push: PropTypes.number.isRequired,
-    username: PropTypes.string.isRequired,
+    username: PropTypes.string,
     textPosition: PropTypes.oneOf([C.direction.UP, C.direction.DOWN]).isRequired,
   }
 
