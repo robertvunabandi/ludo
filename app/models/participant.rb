@@ -1,7 +1,7 @@
 class Participant < ApplicationRecord
   DEFAULT_USERNAME_START = 'anonymous'
   MIN_USERNAME_LENGTH = 4
-  MAX_USERNAME_LENGTH = 25
+  MAX_USERNAME_LENGTH = 18
 
   has_many :players
 
