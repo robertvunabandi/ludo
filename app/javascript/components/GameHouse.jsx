@@ -66,17 +66,19 @@ function GameHouseView(props) {
         strokeWidth={C.stroke.WIDTH}
         fill={C.color.WHITE}
       />
-      <text
-        textAnchor="middle"
-        x={centerX}
-        y={props.top_push + textTop}
-        style={{
-          fontSize: textSize,
-          textShadow,
-        }}
-        >
-        {props.username}
-      </text>
+      {!props.username ? null : (
+        <text
+          textAnchor="middle"
+          x={centerX}
+          y={props.top_push + textTop}
+          style={{
+            fontSize: textSize,
+            textShadow,
+          }}
+          >
+          {props.username}
+        </text>
+      )}
     </g>
   )
 }
