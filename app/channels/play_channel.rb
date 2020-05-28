@@ -74,11 +74,28 @@ class PlayChannel < ApplicationCable::Channel
     turns_count = @game.turns.count
     players_count = @game.players.count
     turn = turns_count == 0 ? 0 : @game.turns.maximum(:turn).turn
+    # TODO: to check if rolling, first check if the turn has any roll
+    # if not, we are rolling. if it does, check whether any of the
+    # rolls contain a 6. if not, we're not rolling. Then, if we allow
+    # rolling after 6, check the rolling rule. If it's all 6s, we're
+    # rolling, if not, we're not rolling.
+    is_rolling = false
+    is_moving = false
+    if !is_rolling
+      # TODO: check if we're moving. If we are rolling, we're not moving
+      # (which is why we check inside this conditional). If we're not
+      # rolling, then... normally to check if we're truly rolling, we
+      # check whether there has been any moving. Basically, cancel out
+      # each unused roll. then, if they're all used, we're not moving.
+      # in that case, it means we need to move to the next turn.
+      # TODO: check if we can have shared variables within action cable
+      # rooms/channels.
+    end
 
     return {
       is_turn_order_determination: turns_count < players_count,
       turn: turn,
-      is_rolling: false,
+      is_rolling: is_rolling,
       is_moving: false,
       remaining_rolls: nil,
     }
