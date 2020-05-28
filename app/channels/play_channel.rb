@@ -15,13 +15,7 @@ class PlayChannel < ApplicationCable::Channel
     @channel = PlayChannel::channel_name(@game.id)
     stream_from @channel
 
-    ActionCable.server.broadcast(
-      @channel,
-      event: E_START,
-      is_turn_order_determination: true,
-      turn: 1,
-      rules: get_rules,
-    )
+    broadcast_current_turn_info(E_START, true)
   end
 
   def unsubscribed
@@ -56,6 +50,39 @@ class PlayChannel < ApplicationCable::Channel
   end
 
   private
+
+  def broadcast_current_turn_info(event, with_rules = false)
+    rules = with_rules ? get_rules : nil
+    current_turn = get_current_turn
+    ActionCable.server.broadcast(
+      @channel,
+      event: event,
+      is_turn_order_determination: current_turn[:is_turn_order_determination],
+      turn: current_turn[:turn],
+      is_rolling: current_turn[:is_rolling],
+      is_moving: current_turn[:is_moving],
+      remaining_rolls: current_turn[:remaining_rolls],
+      rules: rules,
+    )
+  end
+
+  def is_turn_order_determination
+    return turns <= players
+  end
+
+  def get_current_turn
+    turns_count = @game.turns.count
+    players_count = @game.players.count
+    turn = turns_count == 0 ? 0 : @game.turns.maximum(:turn).turn
+
+    return {
+      is_turn_order_determination: turns_count < players_count,
+      turn: turn,
+      is_rolling: false,
+      is_moving: false,
+      remaining_rolls: nil,
+    }
+  end
 
   def get_rules
     rules = @game.rules.collect{|r| {name: r[:name],  value: r.human_value}}
