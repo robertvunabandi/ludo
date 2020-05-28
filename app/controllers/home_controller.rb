@@ -222,7 +222,7 @@ class HomeController < ApplicationController
     end
 
     # now fetch all the players in this game
-    players = Player.where(game_id: @game.id)
+    players = Player.where(game_id: @game.id).order(:created_at)
     @players = players.collect{ |p| {participant_id: p.participant.id, username: p.participant.username, is_host: p.is_host}}
   end
 
