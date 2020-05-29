@@ -78,4 +78,37 @@ class ActionTest < ActiveSupport::TestCase
       assert_not a.valid?
     end
   end
+
+  test "Action#create: fails after all rolls matched up (two rolls)" do
+    g = Game.create
+    assert g.valid?
+    t = Turn.create_next_turn(g)
+    assert t.valid?
+    r = Roll.create(turn: t, roll_hint: 660)
+    assert r.valid?
+    r = Roll.create(turn: t, roll_hint: 450)
+    assert r.valid?
+    a = Action.create(
+      turn: t, action: Action.for(Action::A_BEGIN), piece: 1, roll: 6
+    )
+    assert a.valid?
+    a = Action.create(
+      turn: t, action: Action.for(Action::A_BEGIN), piece: 2, roll: 6
+    )
+    assert a.valid?
+    a = Action.create(
+      turn: t, action: Action.for(Action::A_MOVE), piece: 2, roll: 5
+    )
+    assert a.valid?
+    a = Action.create(
+      turn: t, action: Action.for(Action::A_MOVE), piece: 2, roll: 4
+    )
+    assert a.valid?
+    for roll in [6, 6, 5, 4]
+      a = Action.create(
+        turn: t, action: Action.for(Action::A_MOVE), piece: 1, roll: roll
+      )
+      assert_not a.valid?
+    end
+  end
 end
