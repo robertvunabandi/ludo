@@ -1,7 +1,6 @@
 class Roll < ApplicationRecord
-  belongs_to :game
+  belongs_to :turn
 
-  validates :game, presence:true
   validates :turn, presence:true
   # NOTE: one must use Roll.hint_from_rolls for this
   validates :roll_hint, presence:true, :numericality => { :only_integer => true }
@@ -17,14 +16,14 @@ class Roll < ApplicationRecord
           "The hint must be a 3 digit number (got: #{roll_hint_s})"
         )
       end
-      for character in roll_hint_s
+      roll_hint_s.each_char { |character|
         if !valid_characters.include? character
           record.errors[:roll_hint] << (
             "roll_hint contains invalid character that are not in "
             "the set {#{valid_characters}}"
           )
         end
-      end
+      }
     end
   end
 

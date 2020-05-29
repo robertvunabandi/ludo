@@ -1,9 +1,13 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
 one:
-  turn_id: 1
-  roll_hint: 100
+  turn: one
+  roll: 1
+  action: 1
+  piece: 1
 
 two:
-  turn_id: 1
-  roll_hint: 200
+  turn: one
+  roll: 1
+  action: 1
+  piece: 1

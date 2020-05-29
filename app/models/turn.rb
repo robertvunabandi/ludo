@@ -2,6 +2,8 @@ class Turn < ApplicationRecord
   # Maybe this should have been called "round", but then the "turn"
   # field would also be "round". Uh.
   belongs_to :game
+  has_many :rolls
+  has_many :actions
 
   validates :game, presence:true
   validates :turn, presence:true, :numericality => { :only_integer => true }

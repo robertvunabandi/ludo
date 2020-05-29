@@ -7,7 +7,6 @@ class Game < ApplicationRecord
   has_many :rules
   has_many :players
   has_many :turns
-  has_many :rolls
 
   SECONDS_IN_MINUTES = 60
   MAX_WAIT_TIME_MIN = 5

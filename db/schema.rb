@@ -10,10 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2020_05_28_184445) do
+ActiveRecord::Schema.define(version: 2020_05_29_191352) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
+
+  create_table "actions", force: :cascade do |t|
+    t.integer "roll"
+    t.integer "action"
+    t.integer "piece"
+    t.bigint "turn_id", null: false
+    t.index ["turn_id"], name: "index_actions_on_turn_id"
+  end
 
   create_table "games", force: :cascade do |t|
     t.integer "status"
@@ -37,10 +45,9 @@ ActiveRecord::Schema.define(version: 2020_05_28_184445) do
   end
 
   create_table "rolls", force: :cascade do |t|
-    t.bigint "game_id", null: false
-    t.integer "turn"
     t.integer "roll_hint"
-    t.index ["game_id"], name: "index_rolls_on_game_id"
+    t.bigint "turn_id", null: false
+    t.index ["turn_id"], name: "index_rolls_on_turn_id"
   end
 
   create_table "rules", force: :cascade do |t|
@@ -58,9 +65,10 @@ ActiveRecord::Schema.define(version: 2020_05_28_184445) do
     t.index ["game_id"], name: "index_turns_on_game_id"
   end
 
+  add_foreign_key "actions", "turns"
   add_foreign_key "players", "games"
   add_foreign_key "players", "participants"
-  add_foreign_key "rolls", "games"
+  add_foreign_key "rolls", "turns"
   add_foreign_key "rules", "games"
   add_foreign_key "turns", "games"
 end
