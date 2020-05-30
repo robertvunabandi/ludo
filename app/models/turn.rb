@@ -16,10 +16,17 @@ class Turn < ApplicationRecord
   end
 
   def self.next_turn(game)
-    if Turn.where(game_id: game.id).count == 0
+    if game.turns.count == 0
       return 0
     end
-    max_turn = Turn.where(game_id: game.id).maximum(:turn)
+    max_turn = game.turns.maximum(:turn)
     return max_turn + 1
+  end
+
+  def self.current_turn(game)
+    if game.turns.count == 0
+      return 0
+    end
+    return game.turns.maximum(:turn)
   end
 end

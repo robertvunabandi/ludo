@@ -34,4 +34,25 @@ class TurnTest < ActiveSupport::TestCase
     assert t3.save
     assert_equal 3, t3.turn
   end
+
+  test "Turn#current_turn: current turns match" do
+    g = Game.create
+    assert g.save
+    t0 = Turn.create_next_turn(g)
+    assert t0.save
+    assert_equal 0, t0.turn
+    assert_equal 0, Turn.current_turn(g)
+    t1 = Turn.create_next_turn(g)
+    assert t1.save
+    assert_equal 1, t1.turn
+    assert_equal 1, Turn.current_turn(g)
+    t2 = Turn.create_next_turn(g)
+    assert t2.save
+    assert_equal 2, t2.turn
+    assert_equal 2, Turn.current_turn(g)
+    t3 = Turn.create_next_turn(g)
+    assert t3.save
+    assert_equal 3, t3.turn
+    assert_equal 3, Turn.current_turn(g)
+  end
 end
