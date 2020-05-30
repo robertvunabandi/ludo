@@ -22,6 +22,16 @@
 class Rule < ApplicationRecord
   belongs_to :game
 
+  R_DICE_COUNT = 'dice_count'
+  R_ROLL_AFTER_SIX = 'roll_after_six'
+  R_ROLL_AFTER_SIX_CONDITION = 'roll_after_six_condition'
+  R_ALLOW_SQUARE_DOUBLING = 'allow_square_doubling'
+  R_CAPTURE_INTO_PRISON = 'capture_into_prison'
+  R_GRADUATION_LANE_MODEL = 'graduation_lane_model'
+  R_ROLL_SIX_TO_GRADUATE = 'roll_six_to_graduate'
+  False = 0
+  True = 1
+
   # DEFINING RULES AND HANDLING THEIR VALIDATIONS
   VALID_RULE_NAMES = [
     # This rule specifies the number of dices in the game.
