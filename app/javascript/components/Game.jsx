@@ -2,6 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 
 import C from "utils/constants"
+import H from "utils/helpers"
 import GameBoard from "components/GameBoard"
 
 
@@ -47,64 +48,50 @@ export default class Game extends React.Component {
       username: PropTypes.string.isRequired,
     })).isRequired,
 
-    // when true, it means we're trying to determine who goes
-    // first at the beginning of the game. the server will
-    // determine the order based on rules (these will be
-    // communicated to the front end).
-    is_turn_order_determination: PropTypes.bool.isRequired,
-    // Whether it's this player's turn. If it is, they get
-    // to roll first and then they can send their moves to
-    // the socket
-    turn_info: PropTypes.shape({
-      // if this is false, all other fields are null
-      is_my_turn: PropTypes.bool.isRequired,
-      // if this is true, is_my_turn is true and the
-      // other fields are false and null respectively.
-      // note that if `is_turn_order_determination` is true,
-      // then it means we're in the beginning of the game
-      // and thus these rolls aren't used for moving.
-      is_rolling: PropTypes.bool,
-      // if this is true, is_my_turn is true, is_rolling
-      // is false, and there must be at least one element
-      // in the remaining_rolls array
-      is_moving: PropTypes.bool,
-      // This contains the rolls that this player has yet
-      // to move. If it's not null, it has the same condition
-      // as is_moving when it's true.
-      remaining_rolls: PropTypes.arrayOf(PropTypes.number),
-    }).isRequired,
-
-    // This function sends all the rolls to the server for
-    // this player via socket. This takes a list of integers
-    // that represents the rolls that this player has done.
-    // If the roll contains sixes, based on the game rules,
-    // the player may roll again through another sendRolls,
-    // function (the player will know after rendering is over)
-    // the total number of rolls is determined by the game rules
+    // This function sends all the rolls to the server for this
+    // player via socket. This takes a list of integers that
+    // represents the rolls that this player has done. If the
+    // roll contains sixes, based on the game rules, the player
+    // may roll again through another sendRolls, function (the
+    // player will know after rendering is over) the total
+    // number of rolls is determined by the game rules
     sendRolls: PropTypes.func.isRequired,
     // This is a function that will send a given, nicely
     // formatted action back to the socket. This function takes
     // an object of the form {roll: R, action: A, piece: P}
     // where A is one of {begin, move, rescue, null, stop} and
-    // R must be in the list of remaining_rolls and piece is one
-    // of {1, 2, 3, 4} (this move accept a specific piece).
-    // If the action is 'null' or 'stop', then the piece is null.
+    // R must be in the list of remaining_rolls and piece is
+    // one of {1, 2, 3, 4} (this move accept a specific piece).
+    // If the action is 'null' or 'stop', then the piece is
+    // null.
     sendAction: PropTypes.func.isRequired,
-    // In order to prevent passing the entire socket over, we use
-    // this function to set the history received function handler.
-    // After all, any history change is mainly affected within the
-    // game and not outside. So, this function is called to set
-    // the history function handler to something that the Game uses
-    // when we receive history. See handleReceiveHistory
+    // This is a function that is done when one's performed is
+    // done. it takes no parameters
+    finishTurn: PropTypes.func.isRequired,
+    // In order to prevent passing the entire socket over, we
+    // use this function to set the history received function
+    // handler. After all, any history change is mainly affected
+    // within the game and not outside. So, this function is
+    // called to set the history function handler to something
+    // that the Game uses when we receive history. See
+    // handleReceiveHistory
     setHistoryFunction: PropTypes.func.isRequired,
-    // in some cases, we may be missing some history. This function
-    // is used to request it. it only takes the index of the
-    // requested history. Nothing will happen if the index is above
-    // the max so far.
+    // similar to setHistoryFunction, this function sets the
+    // function that receives the turn information since those
+    // two would be given at different times.
+    setTurnInfoFunction: PropTypes.func.isRequired,
+    // in some cases, we may be missing some history. This
+    // function is used to request it. it only takes the index
+    // of the requested history. Nothing will happen if the
+    // index is above the max so far.
     requestHistory: PropTypes.func.isRequired,
-    // similar to the above, this one asks for the last history. This
-    // can be used to ensure that we're in sync.
+    // similar to the above, this one asks for the last history.
+    // This can be used to ensure that we're in sync.
     requestMaxHistory: PropTypes.func.isRequired,
+    // in some cases, we may be missing the turn info or it may
+    // not have arrived (such as at the begining of the game).
+    // This function is used to request it
+    requestTurnInfo: PropTypes.func.isRequired,
   }
 
   static defaultProps = {}
@@ -116,37 +103,165 @@ export default class Game extends React.Component {
 
     this.state = {
       side_length: this.props.getSideLength(),
-      // The game history is maintained by this
+      // GAME HISTORY
+      // we maintain the game history in the history array
+      // and the history_received array. history is ordered,
+      // and will be what is used to display the pieces.
+      // history_received is for caching for histories we've
+      // already received that are above what is available in
+      // history.
       history: [],
       history_received: {},
-      max_index: -1,
+
+      // TURN INFO
+      // We need to know whose turn it is in order to perform
+      // moves. we keep track of it in the following sets of
+      // variables.
+      // - is_turn_order_determination (bool) represents whether
+      //   we're determining the order of whose to play. we do
+      //   this by rolling the dices at the beginning of the game
+      //   and whoever gets highest win.
+      // - is_my_turn (bool) is true when it's this player's turn
+      // - is_rolling (bool) is true when it's time to roll first
+      // - num_rolls (integer) represents the number of rolls the
+      //   turn player has to do (at most 3)
+      // - is_moving (bool) is true when it's time to perform an
+      //   action for whoever's turn it is
+      // - remaining_rolls (array[range(1..6)]) represents the
+      //   rolls that are still left to play for whoever's turn it
+      //   is
+      is_turn_order_determination: false,
+      is_my_turn: false,
+      num_rolls: 0,
+      is_rolling: false,
+      is_moving: false,
+      remaining_rolls: null,
     }
 
     this.handleReceiveHistory = this.handleReceiveHistory.bind(this)
     this.props.setHistoryFunction(this.handleReceiveHistory)
 
+    this.handleReceiveTurnInfo = this.handleReceiveTurnInfo.bind(this)
+    this.props.setTurnInfoFunction(this.handleReceiveTurnInfo)
+
     this.resizeBasedOnWindow = this.resizeBasedOnWindow.bind(this)
     window.addEventListener("resize", this.resizeBasedOnWindow)
+
+
+    this.props.requestMaxHistory()
+    this.props.requestTurnInfo()
 
     // to ensure we're up to date, we request this every this much
     // milliseconds intervals
     // TODO: this can be kind of dangerous because it'll just
     // bombard the server... maybe request only when unsure?
-    // I commented this out for now while we're in development
+    // I'm keeping this commented out until I see a benefit from
+    // it.
     // setInterval(this.props.requestMaxHistory, Game.REQUEST_MAX_HISTORY_INTERVAL)
   }
 
-  handleReceiveHistory(history) {
-    // TODO: implement this based on the logic above
-    // if we receive something we already have, we ignore it
-    // if we receive something that's next of what we have, we
-    //   store it and update view (done automatically)
-    // if we receive something that's more than what is next of
-    //   what we have, we request all the missing histories but
-    //   still store it. We use history_received as the source
-    //   of truth for all we have. history instead will be
-    //   nicely ordered. then, we use that to display the game.
-    console.log(history)
+  handleReceiveHistory(received) {
+    const history = this.state.history
+    const history_received = this.state.history_received
+
+    // Are we receiving something beyond the correctly formed
+    // history? check if we already have it. if we don't, store
+    // it. if we do, check if what we got is complete and
+    // complete it if not.
+    const new_turn = {
+      turn: received.turn, rolls: received.rolls, actions: received.actions
+    }
+    // since the code inside this if block would be the same as
+    // the one outside, we define this `source` variable to store
+    // where we're grabbing the old_turn from.
+    const source = received.turn >= history.length ? history_received : history
+
+    // special case of when received.turn is beyond history.length
+    if (received.turn >= history.length && (!(received.turn in history_received))) {
+      history_received[received.turn] = new_turn
+      this.updateHistory(history, history_received)
+      return
+    }
+
+    const old_turn = source[received.turn]
+    if (Game._sameHistory(old_turn, new_turn)) {
+      return
+    }
+    source[received.turn] = Game._completedHistory(old_turn, new_turn)
+    this.updateHistory(history, history_received)
+  }
+
+  updateHistory(history, history_received) {
+    const fixed_state_update = Game._fixHistoryBoundary(
+      history, history_received
+    )
+
+    // catch up on the history that we don't have by requesting it
+    const max_turn = Math.max(...Object.keys(fixed_state_update.history_received))
+    if (fixed_state_update.history.length < max_turn) {
+      this.props.requestHistory(fixed_state_update.history.length)
+    }
+    this.setState(fixed_state_update)
+  }
+
+  static _sameHistory(old_turn, new_turn) {
+    if (old_turn.turn !== new_turn.turn) {
+      return false
+    }
+    old_turn.rolls.sort(H.keySorter("roll_id"))
+    new_turn.rolls.sort(H.keySorter("roll_id"))
+    if (!H.isEqual(old_turn.rolls, new_turn.rolls)) {
+      return false
+    }
+    old_turn.actions.sort(H.keySorter("action_id"))
+    new_turn.actions.sort(H.keySorter("action_id"))
+    if (!H.isEqual(old_turn.actions, new_turn.actions)) {
+      return false
+    }
+    return true
+  }
+
+  static _completedHistory(old_turn, new_turn) {
+    // Precondition: the turns are the same
+    const rolls = []
+    const found_rolls = new Set()
+    old_turn.rolls.push(...new_turn.rolls)
+    old_turn.rolls.forEach(roll => {
+      if (found_rolls.has(roll.roll_id)) {
+        return
+      }
+      rolls.push(roll)
+      found_rolls.add(roll.roll_id)
+    })
+
+    const actions = []
+    const found_actions = new Set()
+    old_turn.actions.push(...new_turn.actions)
+    old_turn.actions.forEach(action => {
+      if (found_actions.has(action.action_id)) {
+        return
+      }
+      actions.push(action)
+      found_actions.add(action.action_id)
+    })
+    return {turn: old_turn.turn, rolls, actions}
+  }
+
+  static _fixHistoryBoundary(history, history_received) {
+    // TODO: fix history recursively!
+    return {history, history_received}
+  }
+
+  handleReceiveTurnInfo(turn_info) {
+    this.setState({
+      is_my_turn: parseInt(turn_info.turn_participant_id) === this.props.my_id,
+      is_turn_order_determination: turn_info.is_turn_order_determination,
+      is_rolling: turn_info.is_rolling,
+      num_rolls: turn_info.num_rolls,
+      is_moving: turn_info.is_moving,
+      remaining_rolls: turn_info.remaining_rolls,
+      turn: turn_info.turn,
+    })
   }
 
   resizeBasedOnWindow() {
@@ -199,7 +314,10 @@ function getPiecesPositionsFromHistory(history, rules, available_colors) {
 }
 
 function getStartingPositions(available_colors) {
-  // TODO: implement this function
-  return {}
+  const positions = {}
+  available_colors.forEach(color => {
+    positions[color] = {1: 0, 2: 0, 3: 0, 4: 0}
+  })
+  return positions
 }
 

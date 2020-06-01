@@ -13,13 +13,16 @@ Socket.Respond = {
   DISAPPEAR: "disappear",
   START: "start",
   HISTORY: "history",
+  TURN_INFO: "turn_info",
 }
 Socket.Perform = {
   APPEAR: "appear",
   DISAPPEAR: "disappear",
   ACTION: "action",
   ROLL: "roll",
+  FINISH_TURN: "finish_turn",
   HISTORY_REQUEST: "history_request",
+  TURN_INFO_REQUEST: "turn_info_request",
 }
 Socket.const = {}
 Socket.data = {
@@ -33,6 +36,10 @@ Socket.funcs = {
     Socket.funcs.handleReceiveHistory = handleReceiveHistory
   },
   handleReceiveHistory: () => null,
+  setTurnInfoFunction(handleReceiveTurnInfo) {
+    Socket.funcs.handleReceiveTurnInfo = handleReceiveTurnInfo
+  },
+  handleReceiveTurnInfo: () => null,
 }
 
 Socket.socketSubscribe = function socketSubscribe() {
@@ -59,14 +66,28 @@ Socket.socketSubscribe = function socketSubscribe() {
     }
     Socket.funcs.sendAction = function sendAction(action) {
       self.perform(
-        Socket.Perform.ACTION, {participant_id: Socket.data.myId, action}
+        Socket.Perform.ACTION,
+        {
+          participant_id: Socket.data.myId,
+          action: action.action,
+          piece: action.piece,
+          roll: action.roll,
+        },
       )
     }
-    Socket.funcs.requestHistory = function requestHistory(index) {
-      self.perform(Socket.Perform.HISTORY_REQUEST, {index})
+    Socket.funcs.finishTurn = function finishTurn() {
+      self.perform(
+        Socket.Perform.FINISH_TURN, {participant_id: Socket.data.myId}
+      )
+    }
+    Socket.funcs.requestHistory = function requestHistory(turn) {
+      self.perform(Socket.Perform.HISTORY_REQUEST, {turn})
     }
     Socket.funcs.requestMaxHistory = function requestMaxHistory() {
-      self.perform(Socket.Perform.HISTORY_REQUEST, {index: -1})
+      self.perform(Socket.Perform.HISTORY_REQUEST, {turn: -1})
+    }
+    Socket.funcs.requestTurnInfo = function requestTurnInfo() {
+      self.perform(Socket.Perform.TURN_INFO_REQUEST)
     }
   }
 
@@ -91,12 +112,23 @@ Socket.socketSubscribe = function socketSubscribe() {
       case Socket.Respond.START:
         if (!Socket.data.firstDisplayHappened) {
           Socket.data.firstDisplayHappened = true
-          this._displayGame(data)
+          const self = this
+          // TODO: in the future, do a count down. there is
+          // problem where the socket variables for functions
+          // don't get set up in time before the game is
+          // displayed. So, I make it wait. In the future we
+          // do a count down or loading screen. like, the
+          // event START arrives before the socket is done
+          // with its this.connected() function
+          setTimeout(() => self._displayGame(data), 10)
           return
         }
         break
       case Socket.Respond.HISTORY:
-        Socket.funcs.handleReceiveHistory(data.history)
+        Socket.funcs.handleReceiveHistory(data)
+        break
+      case Socket.Respond.TURN_INFO:
+        Socket.funcs.handleReceiveTurnInfo(data)
         break
       case Socket.Respond.MOVE:
         console.log(`(not-implemented) [${data.event}] event received`, data)
@@ -113,23 +145,20 @@ Socket.socketSubscribe = function socketSubscribe() {
   //
 
   options._displayGame = function _displayGame(displayData) {
-    // TODO: we haven't handled turn_info (also remove this log)
-    console.log(displayData)
-
-    displayData.rules = this._fixRuleTypes(displayData.rules)
     ReactDOM.render(
       <Game
-        rules={displayData.rules}
+        rules={this._fixRuleTypes(displayData.rules)}
         my_id={Socket.data.myId}
         players={Socket.data.players}
-        is_turn_order_determination={displayData.is_turn_order_determination}
-        turn_info={displayData.turn_info}
         getSideLength={this._getSideLength}
         sendRolls={Socket.funcs.sendRolls}
         sendAction={Socket.funcs.sendAction}
+        finishTurn={Socket.funcs.finishTurn}
         setHistoryFunction={Socket.funcs.setHistoryFunction}
+        setTurnInfoFunction={Socket.funcs.setTurnInfoFunction}
         requestHistory={Socket.funcs.requestHistory}
         requestMaxHistory={Socket.funcs.requestMaxHistory}
+        requestTurnInfo={Socket.funcs.requestTurnInfo}
       />,
       document.querySelector("#game-box"),
     )

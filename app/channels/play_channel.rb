@@ -4,6 +4,7 @@ class PlayChannel < ApplicationCable::Channel
   E_DISAPPEAR = "disappear"
   E_START = "start"
   E_HISTORY = "history"
+  E_TURN_INFO = "turn_info"
 
   # conditions for rolling after 6, RASC stands for Roll After Six Condition
   RASC_ANY_VALUE = Rule::RULE_SPECS[Rule::R_ROLL_AFTER_SIX_CONDITION][:select][:any]
@@ -27,8 +28,15 @@ class PlayChannel < ApplicationCable::Channel
     ).pluck(:value)[0]
     @num_dices = @game.rules.where(name: Rule::R_DICE_COUNT).pluck(:value)[0]
     @rules = get_rules
+    @players = @game.players.order(:created_at)
+    @turn_outcome_determined = false
+    @players_in_turn_order = @players.collect{ |p| p.participant_id}
 
-    broadcast_current_turn_info(E_START, true)
+    broadcast_rules_info(E_START)
+
+    # create the zeroth turn
+    current_turn = Turn.current_turn(@game)
+    turn = Turn.find_or_create_by(game: @game, turn: current_turn)
   end
 
   def unsubscribed
@@ -51,14 +59,26 @@ class PlayChannel < ApplicationCable::Channel
   end
 
   def roll(data)
+    participant_id = data["participant_id"]
+    rolls = data["rolls"]
     # TODO: perform the roll, then send a history
   end
 
   def action(data)
-    # TODO: perform the action, then send a history
+    participant_id = data["participant_id"]
+    action = data["action"]
+    piece = data["piece"]
+    roll = data["roll"]
+
+    current_turn = Turn.current_turn(@game)
+    turn = Turn.find_by(game: @game, turn: current_turn)
+
+    # TODO: validate the participant that sent the action
+    # TODO: create the action
+    # TODO: broadcast the turn info through history
   end
 
-  def finish(data)
+  def finish_turn(data)
     # TODO: perfrom the action, which will finish the current turn
     # this must be perform only by the current player whose turn it is
     # then send a new turn info
@@ -66,6 +86,23 @@ class PlayChannel < ApplicationCable::Channel
 
   def history_request(data)
     # TODO: send all the necessary history for that index through E_HISTORY
+    turn_requested = data["turn"]
+    if turn_requested == -1
+      turn_requested = Turn.current_turn(@game)
+    end
+    begin
+      turn = Turn.find_by(game: @game, turn: turn_requested)
+      broadcast_turn_history(E_HISTORY, turn)
+    rescue
+      turn_s = "(#{turn_requested}, data.turn=#{data['turn']})"
+      puts "==TURN REQUESTED #{turn_s} NOT FOUND=="
+    end
+  end
+
+  def turn_info_request
+    current_turn = Turn.current_turn(@game)
+    turn = Turn.find_by(game: @game, turn: current_turn)
+    broadcast_turn_info(E_TURN_INFO, turn)
   end
 
   ###
@@ -114,41 +151,67 @@ class PlayChannel < ApplicationCable::Channel
 
   private
 
-  def broadcast_current_turn_info(event, with_rules = false)
-    rules = with_rules ? @rules : nil
-    current_turn_info = get_current_turn_info
+  def broadcast_rules_info(event)
+    ActionCable.server.broadcast(@channel, event: event, rules: @rules)
+  end
+
+  def broadcast_turn_info(event, turn)
+    turn_info = get_turn_info(turn)
+    if !turn_info[:is_turn_order_determination] && !@turn_outcome_determined
+      set_players_in_turn_order
+    end
+    turn_participant_id = @players_in_turn_order[turn.turn]
+
     ActionCable.server.broadcast(
       @channel,
       event: event,
-      is_turn_order_determination: current_turn_info[:is_turn_order_determination],
-      turn: current_turn_info[:turn],
-      is_rolling: current_turn_info[:is_rolling],
-      num_rolls: current_turn_info[:num_rolls],
-      is_moving: current_turn_info[:is_moving],
-      remaining_rolls: current_turn_info[:remaining_rolls],
-      rules: rules,
+      # TODO: put the id of the player whose turn it is
+      turn_participant_id: turn_participant_id,
+      is_turn_order_determination: turn_info[:is_turn_order_determination],
+      turn: turn.turn,
+      is_rolling: turn_info[:is_rolling],
+      num_rolls: turn_info[:num_rolls],
+      is_moving: turn_info[:is_moving],
+      remaining_rolls: turn_info[:remaining_rolls],
     )
   end
 
-  def is_turn_order_determination
-    return turns <= players
+  def set_players_in_turn_order
+    # order the players from largest rolls sum to smallest rolls sum
+    # TODO: not sure if this method works. will need to test it out
+    old_order = @players_in_turn_order
+    turns = @game.turns.order(:created_at).first(@players.count)
+    # there should be only one roll for each players because of
+    # turn order determination
+    outcomes = turns.collect{ |t| Roll.rolls_from_hint(t.rolls.first.roll_hint) }
+    mapping = {}
+    for i in 0...num_players
+      mapping[old_order[i]] = outcomes[i].inject(0){ |sum, roll| sum - roll }
+    end
+    @players_in_turn_order = old_order.sort_by { |p| mapping[p] }
   end
 
-  def get_current_turn_info
-    is_turn_order_determination = @game.turns.count < @game.players.count
+  def broadcast_turn_history(event, turn)
+    rolls = turn.rolls.count == 0 ? [] : (
+      turn.rolls.order(:created_at)
+        .collect{ |r| {roll_id: r.id, rolls: Roll.rolls_from_hint(r.roll_hint)} }
+    )
+    actions = turn.actions.count == 0 ? [] : (
+      turn.actions.order(:created_at)
+        .collect{ |a| {action_id: a.id, action: a.action, piece: a.piece, roll: a.roll} })
+    ActionCable.server.broadcast(
+      @channel, event: event, turn: turn.turn, rolls: rolls, actions: actions
+    )
+  end
 
-    current_turn = Turn.current_turn(@game)
-    # this will only create the first time, later on it will find
-    # the turn that is already created by the FINISH action
-    turn = Turn.find_or_create_by(game: @game, turn: current_turn)
+  def get_turn_info(turn)
+    is_turn_order_determination = turn.turn < @game.players.count
     is_rolling, num_rolls = is_rolling?(turn, is_turn_order_determination)
     is_moving, remaining_rolls = is_moving?(
       turn, is_rolling, is_turn_order_determination
     )
-
     return {
       is_turn_order_determination: is_turn_order_determination,
-      turn: current_turn,
       is_rolling: is_rolling,
       num_rolls: num_rolls,
       is_moving: is_moving,
