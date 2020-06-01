@@ -35,9 +35,7 @@ function GameBoardView(props) {
   const house_side_length = square_width * 6
   const house_push = props.side_length - house_side_length
   return (
-    <svg
-      width={props.side_length} height={props.side_length} id="game-wrapper"
-    >
+    <>
       <GameHouse
         color={C.color.BLUE}
         side_length={house_side_length}
@@ -107,7 +105,7 @@ function GameBoardView(props) {
         top_push={house_side_length}
         side_length={square_width * 3}
       />
-    </svg>
+    </>
   )
 }
 

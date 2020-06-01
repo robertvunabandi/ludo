@@ -298,12 +298,16 @@ function GameView(props) {
   )
 
   return (
-    <>
-      <GameBoard
-        side_length={props.side_length}
-        color_to_username={color_to_username}
-      />
-    </>
+    <div>
+      <svg
+        width={props.side_length} height={props.side_length} id="game-wrapper"
+      >
+        <GameBoard
+          side_length={props.side_length}
+          color_to_username={color_to_username}
+        />
+      </svg>
+    </div>
   )
 }
 
