@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 
 import C from "utils/constants"
 import H from "utils/helpers"
+import positioning from "utils/positioning"
 import GameBoard from "components/GameBoard"
 
 
@@ -293,7 +294,7 @@ function GameView(props) {
   })
   // for now, naive strategy, based on the history, we figure out
   // where the pieces currently are.
-  const pieces = getPiecesPositionsFromHistory(
+  const pieces = positioning.getPiecesPositionsFromHistory(
     props.history, props.rules, Object.keys(color_to_username)
   )
 
@@ -309,19 +310,5 @@ function GameView(props) {
       </svg>
     </div>
   )
-}
-
-function getPiecesPositionsFromHistory(history, rules, available_colors) {
-  const pieces = getStartingPositions(available_colors)
-  // TODO: do something with rules and history
-  return pieces
-}
-
-function getStartingPositions(available_colors) {
-  const positions = {}
-  available_colors.forEach(color => {
-    positions[color] = {1: 0, 2: 0, 3: 0, 4: 0}
-  })
-  return positions
 }
 
