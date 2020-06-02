@@ -158,23 +158,23 @@ export default class PieceState {
       return new_piece
     }
 
-    new_piece._location = PieceState.nextLocation(
+    new_piece._location = PieceState._nextLocation(
       this._location.track, new_position
     )
     return new_piece
   }
 
-  static nextLocation(color, position) {
+  static _nextLocation(color, position) {
     let new_color = color
     let new_position = position
     while (position > KEY_POSITION.LAST) {
-      new_color = PieceState.nextTrackColor(new_color)
+      new_color = PieceState._nextTrackColor(new_color)
       new_position = new_position - (KEY_POSITION.LAST + 1)
     }
     return {track: new_color, position: new_position}
   }
 
-  static nextTrackColor(color) {
+  static _nextTrackColor(color) {
     switch (color) {
       case C.color.RED:
         return C.color.GREEN
