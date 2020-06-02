@@ -5,6 +5,7 @@ import C from "utils/constants"
 import H from "utils/helpers"
 import positioning from "utils/positioning"
 import GameBoard from "components/GameBoard"
+import GamePiece from "components/GamePiece"
 
 
 const ValidDiceCounts = [1, 2, 3]
@@ -297,6 +298,12 @@ function GameView(props) {
   const pieces = positioning.getPiecesPositionsFromHistory(
     props.history, props.rules, Object.keys(color_to_username)
   )
+  const pieces_array = []
+  Object.keys(pieces).forEach(color => {
+    [1, 2, 3, 4].forEach(piece_id => {
+      pieces_array.push(pieces[color][piece_id])
+    })
+  })
 
   return (
     <div>
@@ -307,6 +314,11 @@ function GameView(props) {
           side_length={props.side_length}
           color_to_username={color_to_username}
         />
+        {pieces_array.map((piece, index) => <GamePiece
+          key={index}
+          side_length={props.side_length}
+          piece={piece}
+        />)}
       </svg>
     </div>
   )

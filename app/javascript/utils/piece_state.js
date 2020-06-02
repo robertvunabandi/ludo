@@ -77,6 +77,13 @@ export default class PieceState {
     return new_piece
   }
 
+  capturerColor() {
+    if (!this.isCaptured()) {
+      throw new Error("this piece is not captured")
+    }
+    return this._capturer
+  }
+
   makeReleased() {
     if (!this.isCaptured()) {
       throw new Error("a piece can only be released if captured")
