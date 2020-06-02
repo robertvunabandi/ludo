@@ -67,7 +67,7 @@ export default class PieceState {
   }
 
   makeCaptured(capturerColor) {
-    if (this._state !== State.OUT) {
+    if (!this.isOut()) {
       throw new Error("a piece can only be captured if out")
     }
     const new_piece = PieceState(this._color, this._id)
@@ -77,14 +77,14 @@ export default class PieceState {
   }
 
   makeReleased() {
-    if (this._state !== State.CAPTURED) {
+    if (!this.isCaptured()) {
       throw new Error("a piece can only be released if captured")
     }
     return PieceState(this._color, this._id)
   }
 
   isGraduating() {
-    if (this._state !== State.OUT) {
+    if (!this.isOut()) {
       return false
     }
     return this._location.track === 'graduation_lane'
@@ -115,7 +115,7 @@ export default class PieceState {
    * the BLUE HOME and the RED graduation triangle).
    */
   location() {
-    if (this._state !== State.OUT) {
+    if (!this.isOut()) {
       throw new Error("This piece is not out, so it doesn't have a location")
     }
     return {
@@ -125,7 +125,7 @@ export default class PieceState {
   }
 
   forward(count, stop_at_graduation_entrance=false) {
-    if (this._state !== State.OUT) {
+    if (!this.isOut()) {
       throw new Error("This piece can't move forward because it's not out")
     }
     const new_piece = PieceState(this._color, this._id)
