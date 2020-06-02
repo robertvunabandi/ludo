@@ -16,7 +16,14 @@ const C = {
   stroke: {
     COLOR: "black",
     WIDTH: 2,
-  }
+  },
+  action: {
+    BEGIN: "begin",
+    MOVE: "move",
+    RESCUE: "rescue",
+    NULL: "null",
+    STOP: "stop",
+  },
 }
 
 C.COLORS = Object.values(C.color)
