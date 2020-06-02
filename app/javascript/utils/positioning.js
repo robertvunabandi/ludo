@@ -1,3 +1,4 @@
+import C from "utils/constants"
 import H from "utils/helpers"
 import PieceState from "utils/piece_state"
 
@@ -41,10 +42,10 @@ P.getStartingPositions = function getStartingPositions(available_colors) {
   const positions = {}
   available_colors.forEach(color => {
     positions[color] = {
-      1: PieceState(color, 1),
-      2: PieceState(color, 2),
-      3: PieceState(color, 3),
-      4: PieceState(color, 4),
+      1: new PieceState(color, 1),
+      2: new PieceState(color, 2),
+      3: new PieceState(color, 3),
+      4: new PieceState(color, 4),
     }
   })
   return positions
@@ -75,7 +76,173 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
 ) {
   // the given color has just performed the given action.
   // now, we update the pieces accordingly
+  let piece = pieces[color][action.piece]
+  const allows_square_doubling = H.allowsSquareDoubling(rules)
+  switch (action.action) {
+    // ========================================================================
+    case C.action.BEGIN:
+      if (!piece.isHome() || (action.roll !== 6)) {
+        // CANCEL
+        return
+      }
+
+      piece = piece.moveOut()
+
+      if (P.newPositionValidWithRules(piece, pieces, rules)) {
+        // CANCEL
+        return
+      }
+
+      pieces[color][action.piece] = piece
+      P.handleCapturesFromPiece(piece, pieces, rules)
+      return
+
+    // ========================================================================
+    case C.action.MOVE:
+      if (!piece.isOut()) {
+        // CANCEL
+        return
+      }
+
+      const previous_loc = piece.location()
+      // extract rules
+      const should_stop_at_grad_entry = H.shouldStopAtGraduationEntrance(rules)
+      const strict_at_graduation = H.strictAtGraduation(rules)
+      const roll_six_to_graduate = H.mustRollSixToGraduate(rules)
+
+      if (strict_at_graduation && piece.isAboutToEnterGraduationLane() && action.roll === 1) {
+        piece = pice.forward(1)
+        if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+          return
+        }
+        pieces[color][action.piece] = piece
+        return
+      }
+
+      if (piece.isGraduating()) {
+        if (previous_loc.position === 6 && action.roll === 6) {
+          console.assert(roll_six_to_graduate)
+          pieces[color][action.piece] = piece.make_graduated()
+          return
+        }
+
+        if (strict_at_graduation) {
+          // the following if condition is that of strict graduation
+          if (action.roll !== previous_loc.position + 1) {
+            return
+          }
+          piece = piece.forward(1)
+          if (piece.location().position === 6 && !roll_six_to_graduate) {
+            piece = piece.makeGraduated()
+          }
+          if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+            return
+          }
+          pieces[color][action.piece] = piece
+          return
+        }
+
+        try {
+          piece = piece.forward(action.roll, should_stop_at_grad_entry)
+        } catch (e) {
+          // CANCEL
+          // invalid move, exceeds graduation
+          return
+        }
+        if (piece.location().position === 6 && !roll_six_to_graduate) {
+          piece = piece.makeGraduated()
+        }
+        if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+          return
+        }
+        pieces[color][action.piece] = piece
+        return
+      }
+
+      // NOW the piece is not graduating
+      try {
+        piece = piece.forward(action.roll, should_stop_at_grad_entry)
+      } catch (e) {
+        // CANCEL
+        // due to overflowing into graduation or other grad lane issues
+        return
+      }
+
+      if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+        return
+      }
+      pieces[color][action.piece] = piece
+      if (!piece.isGraduating()) {
+        P.handleCapturesFromPiece(piece, pieces, rules)
+      }
+      return
+    // ========================================================================
+    case C.action.RESCUE:
+      if (!piece.isCaptured() || action.roll !== 6) {
+        // CANCEL
+        return
+      }
+
+      piece = piece.makeReleased()
+      pieces[color][action.piece] = piece
+      return
+    // ========================================================================
+    case C.action.NULL:
+      // null action, don't do anything
+      return
+    // ========================================================================
+    case C.action.STOP:
+      // stop action, don't do anything, TODO but somewhere outside the
+      // game we should check for stop action and end the game
+      return
+  }
+}
+
+P.newPositionValidWithRules = function newPositionValidWithRules(
+  piece, pieces, rules
+) {
+  if (piece.isGraduated()) {
+    return true
+  }
+  const allows_square_doubling = H.allowsSquareDoubling(rules)
+  if (P.overlapsWithOtherPieces(piece, pieces) && !allows_square_doubling) {
+    return false
+  }
+  return true
+}
+
+P.handleCapturesFromPiece = function handleCapturesFromPiece(piece, pieces, rules) {
+  const pieces_at_location = P.piecesAtLocation(pieces, piece.location())
+  const other_pieces = pieces_at_location.filter(p => !piece.sameColor(p))
+  if (other_pieces.length === 0) {
+    return
+  }
+
+  // capture the other pieces
+  const doesnt_capture_into_prison = H.capturesIntoPrison(rules)
+  other_pieces.forEach(p => {
+    let np = p.makeCaptured()
+    if (doesnt_capture_into_prison) {
+      np = np.makeReleased()
+    }
+    pieces[np.color][np.id] = np
+  })
+}
+
+P.piecesAtLocation = function piecesAtLocation(pieces, location) {
   // TODO: do this
+  throw new Error("FAKE")
+}
+
+P.overlapsWithOtherPieces = function overlapsWithOtherPieces(piece, pieces) {
+  // assumes that piece is not in the set of pieces
+  const pieces_at_location = P.piecesAtLocation(pieces, piece.location())
+  return pieces_at_location.filter(p => piece.sameColor(p)).length > 0
+}
+
+P._piecesCollide = function _piecesCollide(piece1, piece2) {
+  return ([piece1, piece2].every(p => p.isOut()))
+    && H.isEqual(...([piece1, piece2].map(p => p.location())))
 }
 
 
