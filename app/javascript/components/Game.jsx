@@ -346,8 +346,8 @@ function GameView(props) {
     pieces[s_color][s_id].selected = true
   }
 
-  const top_height = props.side_length * 0.08
-  const side_length = props.side_length * 0.92
+  const top_height = props.side_length * 0.1
+  const side_length = props.side_length * 0.9
 
   return (
     <div>
