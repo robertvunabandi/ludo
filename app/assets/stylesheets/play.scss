@@ -5,8 +5,32 @@
 
   #game-control-pane {
     display: block;
+    margin: 0 auto;
     border-bottom: 1px solid black;
     margin-bottom: 1%;
+    #gcp-inner {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      margin: 0 auto;
+      border-left: 1px solid black;
+
+      div {
+        border-right: 1px solid black;
+      }
+
+      #gcp-round-and-rules {}
+      #gcp-player-indicators {
+        display: flex;
+        flex-direction: column;
+        flex-wrap: nowrap;
+      }
+      #gcp-instructions {
+         flex-grow: 1;
+      }
+      #gcp-action {}
+      #gcp-rolls {}
+    }
   }
 
   #game-wrapper {

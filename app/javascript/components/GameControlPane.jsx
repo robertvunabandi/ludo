@@ -7,6 +7,7 @@ import C from "utils/constants"
 export default class GameControlPane extends React.Component {
   static propTypes = {
     height: PropTypes.number.isRequired,
+    side_length: PropTypes.number.isRequired,
 
     // same as in Game.jsx
     players: PropTypes.arrayOf(PropTypes.shape({
@@ -53,17 +54,59 @@ export default class GameControlPane extends React.Component {
   }
 }
 
+/* TODO remove this comment block
+Here are the different scenarios that could happen here (this would
+help figure out how to display things):
+
+A. we're in turn determination
+
+1. it's my turn, and I am supposed to roll
+   Here, I need to know how much everyone has rolled so that the
+   result makes sense to me
+2. it's not my turn, and they are rolling
+   Here, I still need to know the above
+
+B. we're not in turn determination
+
+1. it's my turn, and:
+   a. I am supposed to roll (first time rolling this turn)
+   b. I am still rolling because I rolled a 6
+   c. Now, I am completeting an action for one of my rolls
+2. it's NOT my turn, so it's someone else's turn, and same subcases
+   a, b, c above
+*/
+
 function GameControlPaneView(props) {
   const tp_text = props.is_my_turn
     ? "your"
     : playerWithId(props.players, props.turn_participant_id).username + "'s"
-  const turn_person = <b>{tp_text}</b>
+  const turn_person = (<b>{tp_text}</b>)
+
+  const heightStyle = {height: props.height, maxHeight: props.height}
+  const widthStyle = {
+    width: props.side_length, maxWidth: props.side_length, ...heightStyle
+  }
 
   return (
-    <div
-      id="game-control-pane"
-      style={{height: props.height, maxHeight: props.height}}>
-      It's {turn_person} turn!
+    <div id="game-control-pane" style={heightStyle}>
+      <div id="gcp-inner" style={widthStyle}>
+        <div id="gcp-round-and-rules">
+          ROUND X <br/>
+          view rules
+        </div>
+        <div id="gcp-player-indicators">
+          PLAYER INDICATORS
+        </div>
+        <div id="gcp-instructions">
+          It's {turn_person} turn!
+        </div>
+        <div id="gcp-action">
+          ACTION
+        </div>
+        <div id="gcd-rolls">
+          ROLLS
+        </div>
+      </div>
     </div>
   )
 }

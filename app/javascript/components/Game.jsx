@@ -353,6 +353,7 @@ function GameView(props) {
     <div>
       <GameControlPane
         height={top_height}
+        side_length={side_length}
         players={props.players}
         {...getTurnFields(props)}
       />
