@@ -41,3 +41,6 @@ personal/
 # ds store
 .DS_Store
 **/.DS_Store
+
+# swp files
+.*.swp
