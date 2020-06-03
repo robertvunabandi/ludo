@@ -124,6 +124,8 @@ export default class Game extends React.Component {
       //   we're determining the order of whose to play. we do
       //   this by rolling the dices at the beginning of the game
       //   and whoever gets highest win.
+      // - turn_participant_id (integer) is the id of the player
+      //   whose turn it is
       // - is_my_turn (bool) is true when it's this player's turn
       // - is_rolling (bool) is true when it's time to roll first
       // - num_rolls (integer) represents the number of rolls the
@@ -134,6 +136,7 @@ export default class Game extends React.Component {
       //   rolls that are still left to play for whoever's turn it
       //   is
       is_turn_order_determination: false,
+      turn_participant_id: null,
       is_my_turn: false,
       num_rolls: 0,
       is_rolling: false,
@@ -310,25 +313,12 @@ export default class Game extends React.Component {
   }
 
   render() {
-    const turn_fields = {
-      is_my_turn: this.state.is_my_turn,
-      turn_participant_id: this.state.turn_participant_id,
-      is_turn_order_determination: this.state.is_turn_order_determination,
-      is_rolling: this.state.is_rolling,
-      num_rolls: this.state.num_rolls,
-      is_moving: this.state.is_moving,
-      remaining_rolls: this.state.remaining_rolls,
-      turn: this.state.turn,
-      selected_piece: this.state.selected_piece,
-      last_roll: this.state.last_roll,
-      chosen_action: this.state.chosen_action,
-    }
     return <GameView
       side_length={this.state.side_length}
       players={this.props.players}
       history={this.state.history}
       rules={this.props.rules}
-      {...turn_fields}
+      {...getTurnFields(this.state)}
       handlePieceClick={this.handlePieceClick}
     />
   }
@@ -361,7 +351,11 @@ function GameView(props) {
 
   return (
     <div>
-      <GameControlPane height={top_height} />
+      <GameControlPane
+        height={top_height}
+        players={props.players}
+        {...getTurnFields(props)}
+      />
       <svg
         width={side_length} height={side_length} id="game-wrapper"
       >
@@ -378,5 +372,21 @@ function GameView(props) {
       </svg>
     </div>
   )
+}
+
+function getTurnFields(obj) {
+  return {
+    is_my_turn: obj.is_my_turn,
+    turn_participant_id: obj.turn_participant_id,
+    is_turn_order_determination: obj.is_turn_order_determination,
+    is_rolling: obj.is_rolling,
+    num_rolls: obj.num_rolls,
+    is_moving: obj.is_moving,
+    remaining_rolls: obj.remaining_rolls,
+    turn: obj.turn,
+    selected_piece: obj.selected_piece,
+    last_roll: obj.last_roll,
+    chosen_action: obj.chosen_action,
+  }
 }
 
