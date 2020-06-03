@@ -5,6 +5,7 @@ import C from "utils/constants"
 import H from "utils/helpers"
 import positioning from "utils/positioning"
 import GameBoard from "components/GameBoard"
+import GameControlPane from "components/GameControlPane"
 import GamePiece from "components/GamePiece"
 
 
@@ -358,14 +359,9 @@ function GameView(props) {
   const top_height = props.side_length * 0.08
   const side_length = props.side_length * 0.92
 
-  // TODO: we should just create a ControlPane component
   return (
     <div>
-      <div
-        id="game-control-pane"
-        style={{height: top_height, maxHeight: top_height}}>
-        Control Pane!
-      </div>
+      <GameControlPane height={top_height} />
       <svg
         width={side_length} height={side_length} id="game-wrapper"
       >
