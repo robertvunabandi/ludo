@@ -181,7 +181,7 @@ Socket.socketSubscribe = function socketSubscribe() {
   options._getSideLength = function _getSideLength() {
     const titleHeight = document.querySelector(".title").clientHeight
     const smallest_length = Math.min(window.innerHeight, window.innerWidth)
-    return smallest_length - titleHeight - 50
+    return smallest_length - titleHeight - 25
   }
 
   //
