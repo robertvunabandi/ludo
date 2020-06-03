@@ -35,6 +35,7 @@ export default class PieceState {
     this._state = State.HOME
     this._location = null
     this._capturer = null
+    this.selected = false
   }
 
   get color() {
