@@ -138,6 +138,19 @@ export default class Game extends React.Component {
       is_rolling: false,
       is_moving: false,
       remaining_rolls: null,
+
+      // GAME CONTROLS
+      // For things pertaining to what's happening in the game
+      // - last_roll: when it's time to roll, the roll that this
+      //   player made last time
+      // - selected_piece: after rolling, the player selects a piece
+      //   and is presented with a set of actions. This is pertaining
+      //   to that.
+      // - chosen_action: an action that the player would like to do
+      //   for the piece they selected and action they chose
+      selected_piece: null,
+      last_roll: null,
+      chosen_action: null,
     }
 
     this.handleReceiveHistory = this.handleReceiveHistory.bind(this)
@@ -145,6 +158,8 @@ export default class Game extends React.Component {
 
     this.handleReceiveTurnInfo = this.handleReceiveTurnInfo.bind(this)
     this.props.setTurnInfoFunction(this.handleReceiveTurnInfo)
+
+    this.handlePieceClick = this.handlePieceClick.bind(this)
 
     this.resizeBasedOnWindow = this.resizeBasedOnWindow.bind(this)
     window.addEventListener("resize", this.resizeBasedOnWindow)
@@ -255,8 +270,10 @@ export default class Game extends React.Component {
   }
 
   handleReceiveTurnInfo(turn_info) {
+    const turn_participant_id = parseInt(turn_info.turn_participant_id)
     this.setState({
-      is_my_turn: parseInt(turn_info.turn_participant_id) === this.props.my_id,
+      is_my_turn: turn_participant_id === this.props.my_id,
+      turn_participant_id,
       is_turn_order_determination: turn_info.is_turn_order_determination,
       is_rolling: turn_info.is_rolling,
       num_rolls: turn_info.num_rolls,
@@ -278,12 +295,40 @@ export default class Game extends React.Component {
     })
   }
 
+  handlePieceClick(color, piece_id) {
+    this.setState((state, props) => {
+      if (!state.selected_piece) {
+        return {selected_piece: [color, piece_id]}
+      }
+      const [old_color, old_piece_id] = state.selected_piece
+      if (old_color === color && old_piece_id === piece_id) {
+        return {selected_piece: null}
+      }
+      return {selected_piece: [color, piece_id]}
+    })
+  }
+
   render() {
+    const turn_fields = {
+      is_my_turn: this.state.is_my_turn,
+      turn_participant_id: this.state.turn_participant_id,
+      is_turn_order_determination: this.state.is_turn_order_determination,
+      is_rolling: this.state.is_rolling,
+      num_rolls: this.state.num_rolls,
+      is_moving: this.state.is_moving,
+      remaining_rolls: this.state.remaining_rolls,
+      turn: this.state.turn,
+      selected_piece: this.state.selected_piece,
+      last_roll: this.state.last_roll,
+      chosen_action: this.state.chosen_action,
+    }
     return <GameView
       side_length={this.state.side_length}
       players={this.props.players}
       history={this.state.history}
       rules={this.props.rules}
+      {...turn_fields}
+      handlePieceClick={this.handlePieceClick}
     />
   }
 }
@@ -304,20 +349,35 @@ function GameView(props) {
       pieces_array.push(pieces[color][piece_id])
     })
   })
+  // if a piece is selected, make it selected
+  if (props.selected_piece) {
+    const [s_color, s_id] = props.selected_piece
+    pieces[s_color][s_id].selected = true
+  }
 
+  const top_height = props.side_length * 0.08
+  const side_length = props.side_length * 0.92
+
+  // TODO: we should just create a ControlPane component
   return (
     <div>
+      <div
+        id="game-control-pane"
+        style={{height: top_height, maxHeight: top_height}}>
+        Control Pane!
+      </div>
       <svg
-        width={props.side_length} height={props.side_length} id="game-wrapper"
+        width={side_length} height={side_length} id="game-wrapper"
       >
         <GameBoard
-          side_length={props.side_length}
+          side_length={side_length}
           color_to_username={color_to_username}
         />
         {pieces_array.map((piece, index) => <GamePiece
           key={index}
-          side_length={props.side_length}
+          side_length={side_length}
           piece={piece}
+          handleOnClick={props.handlePieceClick}
         />)}
       </svg>
     </div>

@@ -12,16 +12,28 @@ export default class GamePiece extends React.Component {
   static propTypes = {
     side_length: PropTypes.number.isRequired,
     piece: PropTypes.instanceOf(PieceState).isRequired,
+    // a function that takes in the piece's color and piece's id
+    handleOnClick: PropTypes.func,
   }
 
-  static defaultProps = {}
+  static defaultProps = {
+    handleOnClick: (color, piece_id) => console.log(color, piece_id),
+  }
 
   constructor(props) {
     super(props)
+
+    this.handleClick = this.handleClick.bind(this)
+  }
+
+  handleClick(event) {
+    const piece_id = event.target.parentNode.id
+    const [_, color, id] = piece_id.split("-")
+    this.props.handleOnClick(color, parseInt(id))
   }
 
   render() {
-    return <GamePieceView {...this.props} />
+    return <GamePieceView {...this.props} handleClick={this.handleClick}/>
   }
 }
 
@@ -40,7 +52,11 @@ function GamePieceView(props) {
   />
 
   return (
-    <g id={`piece-${props.piece.color}-${props.piece.id}`}>
+    <g
+      id={`piece-${props.piece.color}-${props.piece.id}`}
+      className={"piece" + (props.piece.selected ? " selected" : "")}
+      onClick={props.handleClick}
+    >
       <circle
         cx={x}
         cy={y}

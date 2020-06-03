@@ -2,9 +2,32 @@
 
 #game-box {
   border-top: 1px solid black;
+
+  #game-control-pane {
+    display: block;
+    border-bottom: 1px solid black;
+    margin-bottom: 1%;
+  }
+
   #game-wrapper {
     display: block;
     margin: 0 auto;
-    margin-top: 1rem;
+
+    .piece {
+
+    }
+    // TODO: i want this to have different accent color
+    .piece.selected {
+      stroke-width: 3;
+    }
+    // TODO: i want this to have different accent color
+    .piece:hover {
+      cursor: pointer;
+      stroke-width: 5;
+    }
+    .piece:focus, .piece:active {
+      fill: white;
+      strike-width: 7;
+    }
   }
 }
