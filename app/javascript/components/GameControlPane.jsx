@@ -35,6 +35,8 @@ export default class GameControlPane extends React.Component {
     }),
 
     // TODO: we need methods to send last roll and chosen actions up the chain
+    // TODO: make this required at some point
+    viewRules: PropTypes.func,
   }
 
   static defaultProps = {
@@ -43,6 +45,8 @@ export default class GameControlPane extends React.Component {
     turn: 0,
     selected_piece: null,
     chosen_action: null,
+
+    viewRules: () => console.log("View rules clicked"),
   }
 
   constructor(props) {
@@ -90,20 +94,24 @@ function GameControlPaneView(props) {
   return (
     <div id="game-control-pane" style={heightStyle}>
       <div id="gcp-inner" style={widthStyle}>
-        <div id="gcp-round-and-rules">
-          ROUND X <br/>
-          view rules
+        <div id="gcp-round-and-rules" className="gcp-component">
+          <div style={{fontSize: (props.height * 0.30) + 'px'}}>
+            <div>ROUND {Math.floor(props.turn / props.players.length)}</div>
+          </div>
+          <div style={{fontSize: (props.height * 0.25) + 'px'}}>
+            <span className="btn" onClick={props.viewRules}>view rules</span>
+          </div>
         </div>
-        <div id="gcp-player-indicators">
+        <div id="gcp-player-indicators" className="gcp-component">
           PLAYER INDICATORS
         </div>
-        <div id="gcp-instructions">
+        <div id="gcp-instructions" className="gcp-component">
           It's {turn_person} turn!
         </div>
-        <div id="gcp-action">
+        <div id="gcp-action" className="gcp-component">
           ACTION
         </div>
-        <div id="gcd-rolls">
+        <div id="gcd-rolls" className="gcp-component">
           ROLLS
         </div>
       </div>
