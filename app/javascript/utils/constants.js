@@ -6,6 +6,7 @@ const C = {
     YELLOW: "yellow",
     GRADUATION: "orange",
     WHITE: "white",
+    BLACK: "black",
     NEUTRAL: "beige",
   },
   direction: {
