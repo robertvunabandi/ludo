@@ -87,6 +87,10 @@ function GameControlPaneView(props) {
     ? "your"
     : playerWithId(props.players, props.turn_participant_id).username + "'s"
   const turn_person = (<b>{tp_text}</b>)
+  // TODO: adjust instructions based on what it's supposed to be
+  const instruction = props.is_my_turn
+    ? <span id="gcp-i-inner">It's {turn_person} turn!</span>
+    : <span id="gcp-i-inner">It's {turn_person} turn! WAIT until they are done.</span>
 
   const heightStyle = {height: props.height, maxHeight: props.height}
   const widthStyle = {
@@ -118,24 +122,27 @@ function GameControlPaneView(props) {
           PLAYER INDICATORS
         </div>
         <div id="gcp-instructions" className="gcp-component">
-          It's {turn_person} turn!
+          {instruction}
         </div>
-        <div
-          id="gcp-action"
-          className="gcp-component"
-          onClick={actionClick}
-          style={{lineHeight: props.height + "px"}}>
-          ACTION
-        </div>
-        <div id="gcd-rolls" className="gcp-component">
-          ROLLS <br/>
-          <Dice width={gcp_rolls_width} value={1} accent_color={my_color} />
-          <Dice width={gcp_rolls_width} value={2} accent_color={my_color} />
-          <Dice width={gcp_rolls_width} value={3} accent_color={my_color} />
-          <Dice width={gcp_rolls_width} value={4} accent_color={my_color} />
-          <Dice width={gcp_rolls_width} value={5} accent_color={my_color} selected={true} />
-          <Dice width={gcp_rolls_width} value={6} accent_color={my_color} />
-        </div>
+        {!props.is_my_turn ? null : <>
+          <div
+            id="gcp-action"
+            className="gcp-component"
+            onClick={actionClick}
+            style={{lineHeight: props.height + "px"}}>
+            ACTION
+          </div>
+          <div id="gcd-rolls" className="gcp-component">
+            ROLLS <br/>
+            <Dice width={gcp_rolls_width} value={1} accent_color={my_color} />
+            <Dice width={gcp_rolls_width} value={2} accent_color={my_color} />
+            <Dice width={gcp_rolls_width} value={3} accent_color={my_color} />
+            <Dice width={gcp_rolls_width} value={4} accent_color={my_color} />
+            <Dice width={gcp_rolls_width} value={5} accent_color={my_color} selected={true} />
+            <Dice width={gcp_rolls_width} value={6} accent_color={my_color} />
+          </div>
+        </>
+        }
       </div>
     </div>
   )

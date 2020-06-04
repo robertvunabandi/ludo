@@ -27,6 +27,7 @@
       justify-content: space-between;
       margin: 0 auto;
       border-left: 1px solid black;
+      position: relative;
 
       .gcp-component {
         padding-left: 0.2rem;
@@ -58,11 +59,24 @@
       }
       #gcp-player-indicators {
         display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
+        align-content: center;
+        height: 100%;
+
+        #gcp-pi-inner {
+          display: flex;
+          flex-direction: column;
+          flex-wrap: nowrap;
+        }
       }
       #gcp-instructions {
          flex-grow: 1;
+         position: relative;
+         #gcp-i-inner {
+           display: block;
+           position: absolute;
+           top: 50%;
+           transform: translateY(-50%);
+         }
       }
       #gcp-action {
         @include no-select;
