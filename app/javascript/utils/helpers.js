@@ -1,7 +1,8 @@
-import {isEqual} from "lodash"
+import {isEqual, flatten} from "lodash"
 
 const H = {
   isEqual,
+  flatten,
   keySorter(key) {
     return function sorter(o1, o2) {
       if (o1[key] === o2[key]) {
