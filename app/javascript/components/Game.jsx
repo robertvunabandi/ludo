@@ -327,6 +327,7 @@ export default class Game extends React.Component {
   render() {
     return <GameView
       side_length={this.state.side_length}
+      my_id={this.props.my_id}
       players={this.props.players}
       history={this.state.history}
       rules={this.props.rules}
@@ -372,6 +373,7 @@ function GameView(props) {
     <div>
       <GameControlPane
         height={top_height}
+        my_id={props.my_id}
         side_length={side_length}
         players={props.players}
         {...getTurnFields(props)}

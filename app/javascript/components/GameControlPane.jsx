@@ -9,6 +9,7 @@ export default class GameControlPane extends React.Component {
   static propTypes = {
     height: PropTypes.number.isRequired,
     side_length: PropTypes.number.isRequired,
+    my_id: PropTypes.number.isRequired,
 
     // same as in Game.jsx
     players: PropTypes.arrayOf(PropTypes.shape({
@@ -93,6 +94,8 @@ function GameControlPaneView(props) {
   }
 
   const gcp_rolls_width = props.height / 2.6
+  const my_color = props.players
+    .filter(p => p.participant_id === props.my_id)[0].color
 
   return (
     <div id="game-control-pane" style={heightStyle}>
@@ -116,12 +119,12 @@ function GameControlPaneView(props) {
         </div>
         <div id="gcd-rolls" className="gcp-component">
           ROLLS <br/>
-          <Dice width={gcp_rolls_width} value={1} />
-          <Dice width={gcp_rolls_width} value={2} />
-          <Dice width={gcp_rolls_width} value={3} />
-          <Dice width={gcp_rolls_width} value={4} />
-          <Dice width={gcp_rolls_width} value={5} />
-          <Dice width={gcp_rolls_width} value={6} />
+          <Dice width={gcp_rolls_width} value={1} accent_color={my_color} />
+          <Dice width={gcp_rolls_width} value={2} accent_color={my_color} />
+          <Dice width={gcp_rolls_width} value={3} accent_color={my_color} />
+          <Dice width={gcp_rolls_width} value={4} accent_color={my_color} />
+          <Dice width={gcp_rolls_width} value={5} accent_color={my_color} selected={true} />
+          <Dice width={gcp_rolls_width} value={6} accent_color={my_color} />
         </div>
       </div>
     </div>

@@ -33,9 +33,15 @@ export default class Dice extends React.Component {
   static propTypes = {
     width: PropTypes.number.isRequired,
     value: PropTypes.oneOf([1, 2, 3, 4, 5, 6]).isRequired,
+    selected: PropTypes.bool,
+    accent_color: PropTypes.oneOf(C.COLORS).isRequired,
+    onClick: PropTypes.func,
   }
 
-  static defaultProps = {}
+  static defaultProps = {
+    selected: false,
+    onClick: () => console.log("clicked"),
+  }
 
   constructor(props) {
     super(props)
@@ -52,12 +58,13 @@ function DiceView(props) {
   const rc = inner * 0.2
 
   const dot_radius = (inner / 5.5) / 2
+  const s_class = props.selected ? " selected" : ""
   return (
     <svg
       width={props.width}
       height={props.width}
-      className={`dice dice-${props.value}`} >
-      <g>
+      className={`dice dice-${props.value}` + s_class} >
+      <g onClick={props.onClick}>
         <rect
           x={push}
           y={push}
@@ -65,7 +72,7 @@ function DiceView(props) {
           height={inner}
           rx={rc}
           ry={rc}
-          fill={C.color.WHITE}
+          fill={props.selected ? props.accent_color : C.color.WHITE}
           stroke={C.color.BLACK}
         />
         {Object.keys(DF).map(dotResolver(inner, push, dot_radius, props.value))}
