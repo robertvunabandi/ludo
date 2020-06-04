@@ -137,7 +137,7 @@ export default class Game extends React.Component {
       // - remaining_rolls (array[range(1..6)]) represents the
       //   rolls that are still left to play for whoever's turn it
       //   is
-      is_turn_order_determination: false,
+      is_turn_order_determination: true,
       turn_participant_id: null,
       is_my_turn: false,
       num_rolls: 0,
@@ -369,6 +369,7 @@ function GameView(props) {
     ? makeRulesModal(props.rules, props.closeRules)
     : null
 
+
   return (
     <div>
       <GameControlPane
@@ -376,6 +377,7 @@ function GameView(props) {
         my_id={props.my_id}
         side_length={side_length}
         players={props.players}
+        history={props.history}
         {...getTurnFields(props)}
         viewRules={props.viewRules}
       />
@@ -423,3 +425,4 @@ function makeRulesModal(rules, closeRules) {
     </Modal>
   )
 }
+
