@@ -1,6 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 
+import Dice from "components/Dice"
 import C from "utils/constants"
 
 
@@ -91,6 +92,8 @@ function GameControlPaneView(props) {
     width: props.side_length, maxWidth: props.side_length, ...heightStyle
   }
 
+  const gcp_rolls_width = props.height / 2.6
+
   return (
     <div id="game-control-pane" style={heightStyle}>
       <div id="gcp-inner" style={widthStyle}>
@@ -112,7 +115,13 @@ function GameControlPaneView(props) {
           ACTION
         </div>
         <div id="gcd-rolls" className="gcp-component">
-          ROLLS
+          ROLLS <br/>
+          <Dice width={gcp_rolls_width} value={1} />
+          <Dice width={gcp_rolls_width} value={2} />
+          <Dice width={gcp_rolls_width} value={3} />
+          <Dice width={gcp_rolls_width} value={4} />
+          <Dice width={gcp_rolls_width} value={5} />
+          <Dice width={gcp_rolls_width} value={6} />
         </div>
       </div>
     </div>

@@ -4,6 +4,11 @@
 #game-box {
   border-top: 1px solid black;
 
+  .dice {
+    display: inline-block;
+    background-color: white;
+  }
+
   #game-control-pane {
     display: block;
     margin: 0 auto;
