@@ -58,14 +58,34 @@
         }
       }
       #gcp-player-indicators {
+        padding-left: 0;
+        padding-right: 0;
         display: flex;
-        align-content: center;
-        height: 100%;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
 
         #gcp-pi-inner {
           display: flex;
           flex-direction: column;
           flex-wrap: nowrap;
+          .player-indicator {
+            display: flex;
+            align-items: flex-start;
+            .pi-color, .pi-rolls {
+            }
+            .pi-color {
+              min-width: 1rem;
+            }
+            .pi-rolls {
+              padding-left: 0.1rem;
+              flex-grow: 1;
+              min-width: 0.5rem;
+              .dice {
+                margin-right: 0.1rem;
+              }
+            }
+          }
         }
       }
       #gcp-instructions {
