@@ -97,6 +97,12 @@ function GameControlPaneView(props) {
   const my_color = props.players
     .filter(p => p.participant_id === props.my_id)[0].color
 
+  // TODO: make this action adjust to whatever we are doing
+  // TODO: also, when it's not my turn, the action stuff shouldn't show up
+  function actionClick() {
+    console.log("clicked on action!")
+  }
+
   return (
     <div id="game-control-pane" style={heightStyle}>
       <div id="gcp-inner" style={widthStyle}>
@@ -114,7 +120,11 @@ function GameControlPaneView(props) {
         <div id="gcp-instructions" className="gcp-component">
           It's {turn_person} turn!
         </div>
-        <div id="gcp-action" className="gcp-component">
+        <div
+          id="gcp-action"
+          className="gcp-component"
+          onClick={actionClick}
+          style={{lineHeight: props.height + "px"}}>
           ACTION
         </div>
         <div id="gcd-rolls" className="gcp-component">

@@ -58,7 +58,17 @@
       #gcp-instructions {
          flex-grow: 1;
       }
-      #gcp-action {}
+      #gcp-action {
+        @include no-select;
+      }
+      #gcp-action:hover {
+        cursor: pointer;
+        background-color: $c-black-01;
+      }
+      #gcp-action:focus, #gcp-action:active {
+        background-color: $c-black-02;
+      }
+
       #gcp-rolls {}
     }
   }
