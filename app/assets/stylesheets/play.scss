@@ -8,6 +8,12 @@
     display: inline-block;
     background-color: white;
   }
+  .dice:hover {
+    cursor: pointer;
+  }
+  .dice:hover rect {
+    fill: $c-black-01;
+  }
 
   #game-control-pane {
     display: block;
