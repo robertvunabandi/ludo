@@ -40,7 +40,7 @@ export default class Dice extends React.Component {
 
   static defaultProps = {
     selected: false,
-    onClick: () => console.log("clicked"),
+    onClick: () => null,
   }
 
   constructor(props) {
