@@ -7,6 +7,7 @@ import positioning from "utils/positioning"
 import GameBoard from "components/GameBoard"
 import GameControlPane from "components/GameControlPane"
 import GamePiece from "components/GamePiece"
+import Modal from "components/Modal"
 
 
 const ValidDiceCounts = [1, 2, 3]
@@ -105,6 +106,7 @@ export default class Game extends React.Component {
     super(props)
 
     this.state = {
+      display_rules: false,
       side_length: this.props.getSideLength(),
       // GAME HISTORY
       // we maintain the game history in the history array
@@ -164,6 +166,8 @@ export default class Game extends React.Component {
     this.props.setTurnInfoFunction(this.handleReceiveTurnInfo)
 
     this.handlePieceClick = this.handlePieceClick.bind(this)
+    this.viewRules = this.viewRules.bind(this)
+    this.closeRules = this.closeRules.bind(this)
 
     this.resizeBasedOnWindow = this.resizeBasedOnWindow.bind(this)
     window.addEventListener("resize", this.resizeBasedOnWindow)
@@ -312,6 +316,14 @@ export default class Game extends React.Component {
     })
   }
 
+  viewRules() {
+    this.setState({display_rules: true})
+  }
+
+  closeRules() {
+    this.setState({display_rules: false})
+  }
+
   render() {
     return <GameView
       side_length={this.state.side_length}
@@ -320,6 +332,9 @@ export default class Game extends React.Component {
       rules={this.props.rules}
       {...getTurnFields(this.state)}
       handlePieceClick={this.handlePieceClick}
+      display_rules={this.state.display_rules}
+      viewRules={this.viewRules}
+      closeRules={this.closeRules}
     />
   }
 }
@@ -349,6 +364,10 @@ function GameView(props) {
   const top_height = props.side_length * 0.1
   const side_length = props.side_length * 0.9
 
+  const rules_modal = props.display_rules
+    ? makeRulesModal(props.rules, props.closeRules)
+    : null
+
   return (
     <div>
       <GameControlPane
@@ -356,6 +375,7 @@ function GameView(props) {
         side_length={side_length}
         players={props.players}
         {...getTurnFields(props)}
+        viewRules={props.viewRules}
       />
       <svg
         width={side_length} height={side_length} id="game-wrapper"
@@ -371,6 +391,7 @@ function GameView(props) {
           handleOnClick={props.handlePieceClick}
         />)}
       </svg>
+      {rules_modal}
     </div>
   )
 }
@@ -391,3 +412,12 @@ function getTurnFields(obj) {
   }
 }
 
+function makeRulesModal(rules, closeRules) {
+  // TODO: display the rules in a nice way... probably move this
+  // into its own file.
+  return (
+    <Modal onClose={closeRules} padding={5} >
+      {JSON.stringify(rules).replace(/,/g, ", ").replace(/:/g, ": ")}
+    </Modal>
+  )
+}

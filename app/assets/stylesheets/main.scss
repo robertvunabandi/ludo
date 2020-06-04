@@ -55,10 +55,25 @@ $s1: 0.25rem;
 }
 
 // colors
+$c-black-09: rgba(0, 0, 0, 0.9);
+$c-black-08: rgba(0, 0, 0, 0.8);
+$c-black-07: rgba(0, 0, 0, 0.7);
+$c-black-06: rgba(0, 0, 0, 0.6);
+$c-black-05: rgba(0, 0, 0, 0.5);
+$c-black-04: rgba(0, 0, 0, 0.4);
 $c-black-03: rgba(0, 0, 0, 0.3);
 $c-black-02: rgba(0, 0, 0, 0.2);
 $c-black-01: rgba(0, 0, 0, 0.1);
 $c-black-005: rgba(0, 0, 0, 0.05);
+$c-white-09: rgba(255, 255, 255, 0.9);
+$c-white-08: rgba(255, 255, 255, 0.8);
+$c-white-07: rgba(255, 255, 255, 0.7);
+$c-white-06: rgba(255, 255, 255, 0.6);
+$c-white-05: rgba(255, 255, 255, 0.5);
+$c-white-04: rgba(255, 255, 255, 0.4);
+$c-white-03: rgba(255, 255, 255, 0.3);
+$c-white-02: rgba(255, 255, 255, 0.2);
+$c-white-01: rgba(255, 255, 255, 0.1);
 $c-err-05: rgba(255, 50, 50, 0.5);
 $c-err-1: rgba(255, 50, 50, 1);
 
@@ -82,6 +97,39 @@ input {
 }
 input:invalid {
   border: 2px solid $c-err-05;
+}
+
+#app-modal {
+  position: absolute;
+  display: block;
+  top: 0;
+  background-color: $c-black-08;
+  overflow-y: scroll;
+
+  #app-modal-inner {
+    @include p4;
+    display: block;
+    background-color: $c-white-09;
+  }
+
+  #app-modal-close {
+    @include p4;
+    display: block;
+    text-align: center;
+    background-color: $c-white-09;
+
+    #app-modal-close-btn {
+      background-color: $c-black-01;
+      display: inline-block;
+      padding: $s2 $s4;
+    }
+    #app-modal-close-btn:hover {
+      background-color: $c-black-03;
+    }
+    #app-modal-close-btn:focus, #app-modal-close-btn:active {
+      background-color: $c-black-04;
+    }
+  }
 }
 
 .block-center {
