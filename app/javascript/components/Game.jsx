@@ -5,7 +5,7 @@ import C from "utils/constants"
 import H from "utils/helpers"
 import positioning from "utils/positioning"
 import GameBoard from "components/GameBoard"
-import GameControlPane from "components/GameControlPane"
+import GameControlPane from "components/cp/GameControlPane"
 import GamePiece from "components/GamePiece"
 import Modal from "components/Modal"
 

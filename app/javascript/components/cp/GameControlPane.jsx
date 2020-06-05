@@ -1,9 +1,14 @@
 import React from "react"
 import PropTypes from "prop-types"
 
-import Dice from "components/Dice"
 import C from "utils/constants"
 import H from "utils/helpers"
+import PT from "utils/prop_types"
+
+import Dice from "components/Dice"
+
+import GCPRoundAndRules from "./GCPRoundAndRules"
+import GCPPlayerIndicators from "./GCPPlayerIndicators"
 
 
 export default class GameControlPane extends React.Component {
@@ -13,25 +18,8 @@ export default class GameControlPane extends React.Component {
     my_id: PropTypes.number.isRequired,
 
     // same as in Game.jsx
-    players: PropTypes.arrayOf(PropTypes.shape({
-      color: PropTypes.string.isRequired,
-      is_host: PropTypes.bool.isRequired,
-      participant_id: PropTypes.number.isRequired,
-      username: PropTypes.string.isRequired,
-    })).isRequired,
-    history: PropTypes.arrayOf(PropTypes.shape({
-      turn: PropTypes.number.isRequired,
-      rolls: PropTypes.arrayOf(PropTypes.shape({
-        roll_id: PropTypes.number.isRequired,
-        rolls: PropTypes.arrayOf(PropTypes.number).isRequired,
-      })),
-      actions: PropTypes.arrayOf(PropTypes.shape({
-        action_id: PropTypes.number.isRequired,
-        action: PropTypes.oneOf(C.ACTIONS).isRequired,
-        piece: PropTypes.number.isRequired,
-        roll: PropTypes.number.isRequired,
-      })),
-    })).isRequired,
+    players: PT.players.isRequired,
+    history: PT.history.isRequired,
 
     // all of these are state fields of Game.jsx, see there for info
     is_my_turn: PropTypes.bool.isRequired,
@@ -45,9 +33,7 @@ export default class GameControlPane extends React.Component {
     selected_piece: PropTypes.arrayOf(PropTypes.number),
     last_roll: PropTypes.arrayOf(PropTypes.number),
     chosen_action: PropTypes.shape({
-      action: PropTypes.oneOf(C.ACTIONS),
-      piece: PropTypes.oneOf([1, 2, 3, 4]),
-      roll: PropTypes.number.isRequired,
+      action: PT.action, piece: PT.piece, roll: PT.roll.isRequired
     }),
 
     // TODO: we need methods to send last roll and chosen actions up the chain
@@ -105,41 +91,10 @@ function GameControlPaneView(props) {
     width: props.side_length, maxWidth: props.side_length, ...heightStyle
   }
 
-  //
   // ROUNDS
-  //
   const round = Math.floor(props.turn / props.players.length)
 
-  //
-  // PLAYERS INDICATOR
-  //
-  const players_order = props.is_turn_order_determination
-    ? props.players.map(p => p.participant_id)
-    : getOrderFromHistory(props.players, props.history)
-  const relevant_history = props.history.slice(round, round + props.players.length)
-  const pi_height_style = {height: props.height / 4, maxHeight: props.height / 4}
-  const gcp_pi_inner = <div id="gcp-pi-inner" style={heightStyle}>
-    {players_order.map((player_id, index) => {
-      const hist = relevant_history[index]
-      const player = playerWithId(props.players, player_id)
-      const rolls = !!hist ? H.flatten(hist.rolls.map(r => r.rolls)) : []
-      return <div key={index} className="player-indicator" style={pi_height_style}>
-        <span
-          className="pi-color"
-          style={{backgroundColor: player.color, ...pi_height_style}}>
-        </span>
-        <span className="pi-rolls">
-        {rolls.map((r, i) => (
-          <Dice
-            key={i}
-            width={props.height / 4}
-            value={r}
-            accent_color={player.color} />
-        ))}
-        </span>
-      </div>
-    })}
-  </div>
+  // PLAYERS INDICATOR: nothing to do here
 
   //
   // INSTRUCTIONS
@@ -165,25 +120,22 @@ function GameControlPaneView(props) {
   //
   // ROLLS
   //
-  const gcp_rolls_width = props.height / 2.6
-  const my_color = props.players
-    .filter(p => p.participant_id === props.my_id)[0].color
-
+  const gcp_dice_width = props.height / 2.6
+  const my_color = playerWithId(props.players, props.my_id).color
 
   return (
     <div id="game-control-pane" style={heightStyle}>
       <div id="gcp-inner" style={widthStyle}>
-        <div id="gcp-round-and-rules" className="gcp-component">
-          <div style={{fontSize: (props.height * 0.30) + 'px'}}>
-            <div>ROUND {round}</div>
-          </div>
-          <div style={{fontSize: (props.height * 0.25) + 'px'}}>
-            <span className="btn" onClick={props.viewRules}>view rules</span>
-          </div>
-        </div>
-        <div id="gcp-player-indicators" className="gcp-component">
-          {gcp_pi_inner}
-        </div>
+        <GCPRoundAndRules
+          height={props.height}
+          round={round}
+          viewRules={props.viewRules} />
+        <GCPPlayerIndicators
+          is_turn_order_termination={props.is_turn_order_determination}
+          height={props.height}
+          players={props.players}
+          history={props.history}
+          round={round} />
         <div id="gcp-instructions" className="gcp-component">
           {instruction}
         </div>
@@ -197,29 +149,18 @@ function GameControlPaneView(props) {
           </div>
           <div id="gcd-rolls" className="gcp-component">
             ROLLS <br/>
-            <Dice width={gcp_rolls_width} value={1} accent_color={my_color} />
-            <Dice width={gcp_rolls_width} value={2} accent_color={my_color} />
-            <Dice width={gcp_rolls_width} value={3} accent_color={my_color} />
-            <Dice width={gcp_rolls_width} value={4} accent_color={my_color} />
-            <Dice width={gcp_rolls_width} value={5} accent_color={my_color} selected={true} />
-            <Dice width={gcp_rolls_width} value={6} accent_color={my_color} />
+            <Dice width={gcp_dice_width} value={1} accent_color={my_color} />
+            <Dice width={gcp_dice_width} value={2} accent_color={my_color} />
+            <Dice width={gcp_dice_width} value={3} accent_color={my_color} />
+            <Dice width={gcp_dice_width} value={4} accent_color={my_color} />
+            <Dice width={gcp_dice_width} value={5} accent_color={my_color} selected={true} />
+            <Dice width={gcp_dice_width} value={6} accent_color={my_color} />
           </div>
         </>
         }
       </div>
     </div>
   )
-}
-
-function getOrderFromHistory(players, history) {
-  const player_ids = players.map(p => ({id: p.participant_id, points: -1}))
-  const relevant = history.slice(0, players.length)
-  player_ids.forEach((p, i) => {
-    const rolls = relevant[i].rolls[0].rolls
-    p.points = H.sum(rolls)
-  })
-  player_ids.sort(H.keySorter("points"))
-  return player_ids.map(p => p.id)
 }
 
 function playerWithId(players, participant_id) {
