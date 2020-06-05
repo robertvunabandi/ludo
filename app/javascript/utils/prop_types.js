@@ -25,8 +25,8 @@ PT.history = PropTypes.arrayOf(PropTypes.shape({
   actions: PropTypes.arrayOf(PropTypes.shape({
     action_id: PropTypes.number.isRequired,
     action: PT.action.isRequired,
-    piece: PropTypes.number.isRequired,
-    roll: PropTypes.number.isRequired,
+    piece: PT.piece.isRequired,
+    roll: PT.roll.isRequired,
   })),
 }))
 
