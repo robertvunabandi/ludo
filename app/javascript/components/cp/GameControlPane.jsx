@@ -52,10 +52,24 @@ export default class GameControlPane extends React.Component {
 
   constructor(props) {
     super(props)
+
+    this.state = {
+      // an array of the form [roll_id, index]
+      selected_roll: null,
+    }
+
+    this.selectRoll = this.selectRoll.bind(this)
+  }
+
+  selectRoll(roll_selection) {
+    this.setState({selected_roll: roll_selection})
   }
 
   render() {
-    return <GameControlPaneView {...this.props} />
+    return <GameControlPaneView
+      {...this.props}
+      {...this.state}
+      selectRoll={this.selectRoll} />
   }
 }
 
@@ -121,6 +135,18 @@ function GameControlPaneView(props) {
   //
   const gcp_dice_width = props.height / 2.6
   const my_color = playerWithId(props.players, props.my_id).color
+  // const [s_id, s_index] = props.selected_roll
+  const my_rolls = getMyRolls(props.history, props.selected_roll)
+  const gcp_rolls = my_rolls.map((r, i) => (
+    <Dice
+      key={i}
+      width={props.height / 2.6}
+      value={r.roll}
+      accent_color={my_color}
+      roll_id={[r.id, r.index]}
+      selected={r.selected}
+      onClick={props.selectRoll} />
+  ))
 
   return (
     <div id="game-control-pane" style={heightStyle}>
@@ -147,13 +173,7 @@ function GameControlPaneView(props) {
             ACTION
           </div>
           <div id="gcd-rolls" className="gcp-component">
-            ROLLS <br/>
-            <Dice width={gcp_dice_width} value={1} accent_color={my_color} />
-            <Dice width={gcp_dice_width} value={2} accent_color={my_color} />
-            <Dice width={gcp_dice_width} value={3} accent_color={my_color} />
-            <Dice width={gcp_dice_width} value={4} accent_color={my_color} />
-            <Dice width={gcp_dice_width} value={5} accent_color={my_color} selected={true} />
-            <Dice width={gcp_dice_width} value={6} accent_color={my_color} />
+            {gcp_rolls}
           </div>
         </>
         }
@@ -172,5 +192,28 @@ function playerWithId(players, participant_id) {
     }
   }
   return {}
+}
+
+function getMyRolls(history, selected_roll) {
+  if (history.length === 0) {
+    return []
+  }
+  const rolls = history[history.length - 1].rolls
+  if (rolls.length === 0) {
+    return []
+  }
+  const actual_rolls = []
+  const [s_id, s_index] = !!selected_roll ? selected_roll : [-1, -1]
+  rolls.forEach(rs => {
+    rs.rolls.forEach((r, i) => {
+      actual_rolls.push({
+        roll: r,
+        id: rs.roll_id,
+        index: i,
+        selected: (s_id === rs.roll_id) && (s_index === i),
+      })
+    })
+  })
+  return actual_rolls
 }
 

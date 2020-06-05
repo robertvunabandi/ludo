@@ -14,6 +14,9 @@
   .dice:hover rect {
     fill: $c-black-01;
   }
+  .dice:hover.selected rect {
+    fill: currentcolor;
+  }
 
   #game-control-pane {
     display: block;

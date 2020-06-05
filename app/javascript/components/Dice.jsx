@@ -1,6 +1,5 @@
 import React from "react"
 import PropTypes from "prop-types"
-
 import C from "utils/constants"
 
 
@@ -36,11 +35,13 @@ export default class Dice extends React.Component {
     selected: PropTypes.bool,
     accent_color: PropTypes.oneOf(C.COLORS).isRequired,
     onClick: PropTypes.func,
+    roll_id: PropTypes.any,
   }
 
   static defaultProps = {
     selected: false,
     onClick: () => null,
+    roll_id: -1,
   }
 
   constructor(props) {
@@ -59,12 +60,13 @@ function DiceView(props) {
 
   const dot_radius = (inner / 5.5) / 2
   const s_class = props.selected ? " selected" : ""
+  const fill_color = props.selected ? props.accent_color : C.color.WHITE
   return (
     <svg
       width={props.width}
       height={props.width}
       className={`dice dice-${props.value}` + s_class} >
-      <g onClick={props.onClick}>
+      <g onClick={() => props.onClick(props.roll_id)}>
         <rect
           x={push}
           y={push}
@@ -72,8 +74,9 @@ function DiceView(props) {
           height={inner}
           rx={rc}
           ry={rc}
-          fill={props.selected ? props.accent_color : C.color.WHITE}
+          fill={fill_color}
           stroke={C.color.BLACK}
+          style={{color: fill_color}}
         />
         {Object.keys(DF).map(dotResolver(inner, push, dot_radius, props.value))}
       </g>
