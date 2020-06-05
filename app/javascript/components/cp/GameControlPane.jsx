@@ -37,8 +37,7 @@ export default class GameControlPane extends React.Component {
     }),
 
     // TODO: we need methods to send last roll and chosen actions up the chain
-    // TODO: make this required at some point
-    viewRules: PropTypes.func,
+    viewRules: PropTypes.func.isRequired,
   }
 
   static defaultProps = {
