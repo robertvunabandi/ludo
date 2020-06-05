@@ -46,8 +46,6 @@ export default class GameControlPane extends React.Component {
     turn: 0,
     selected_piece: null,
     chosen_action: null,
-
-    viewRules: () => console.log("View rules clicked"),
   }
 
   constructor(props) {
@@ -66,9 +64,25 @@ export default class GameControlPane extends React.Component {
   }
 
   render() {
+    const tp_text = this.props.is_my_turn
+      ? "your"
+      : playerWithId(
+        this.props.players, this.props.turn_participant_id
+      ).username + "'s"
+    const turn_person = (<b>{tp_text}</b>)
+    // TODO: adjust instructions based on what it's supposed to be
+    const instruction = this.props.is_my_turn
+      ? <span id="gcp-i-inner">It's {turn_person} turn!</span>
+      : <span id="gcp-i-inner">It's {turn_person} turn! WAIT until they are done.</span>
+    const actioning = {
+      instruction: instruction,
+      action_text: "ACTION",
+      actionFunction: () => console.log("ACTION"),
+    }
     return <GameControlPaneView
       {...this.props}
       {...this.state}
+      {...actioning}
       selectRoll={this.selectRoll} />
   }
 }
@@ -96,9 +110,7 @@ B. we're not in turn determination
 */
 
 function GameControlPaneView(props) {
-  //
   // OVERALL
-  //
   const heightStyle = {height: props.height, maxHeight: props.height}
   const widthStyle = {
     width: props.side_length, maxWidth: props.side_length, ...heightStyle
@@ -109,30 +121,10 @@ function GameControlPaneView(props) {
 
   // PLAYERS INDICATOR: nothing to do here
 
-  //
-  // INSTRUCTIONS
-  //
-  const tp_text = props.is_my_turn
-    ? "your"
-    : playerWithId(props.players, props.turn_participant_id).username + "'s"
-  const turn_person = (<b>{tp_text}</b>)
-  // TODO: adjust instructions based on what it's supposed to be
-  const instruction = props.is_my_turn
-    ? <span id="gcp-i-inner">It's {turn_person} turn!</span>
-    : <span id="gcp-i-inner">It's {turn_person} turn! WAIT until they are done.</span>
+  // INSTRUCTIONS & ACTION
+  const {instruction, actionFunction, action_text} = props
 
-  //
-  // ACTION
-  //
-  // TODO: make this action adjust to whatever we are doing
-  // TODO: also, when it's not my turn, the action stuff shouldn't show up
-  function actionClick() {
-    console.log("clicked on action!")
-  }
-
-  //
   // ROLLS
-  //
   const gcp_dice_width = props.height / 2.6
   const my_color = playerWithId(props.players, props.my_id).color
   // const [s_id, s_index] = props.selected_roll
@@ -162,21 +154,20 @@ function GameControlPaneView(props) {
           history={props.history}
           round={round} />
         <div id="gcp-instructions" className="gcp-component">
-          {instruction}
+          {props.instruction}
         </div>
-        {!props.is_my_turn ? null : <>
+        {!props.is_my_turn ? null :(<>
           <div
             id="gcp-action"
             className="gcp-component"
-            onClick={actionClick}
+            onClick={actionFunction}
             style={{lineHeight: props.height + "px"}}>
-            ACTION
+            {action_text}
           </div>
           <div id="gcd-rolls" className="gcp-component">
             {gcp_rolls}
           </div>
-        </>
-        }
+        </>)}
       </div>
     </div>
   )
