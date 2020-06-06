@@ -35,7 +35,7 @@ P.getPiecesPositionsFromHistory = function getPiecesPositionsFromHistory(
 P.isTurnOrderDetermination = function isTurnOrderDetermination(
   turn, num_players
 ) {
-  return i < num_players
+  return turn < num_players
 }
 
 P.getStartingPositions = function getStartingPositions(available_colors) {

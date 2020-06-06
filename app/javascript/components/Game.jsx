@@ -52,13 +52,9 @@ export default class Game extends React.Component {
       username: PropTypes.string.isRequired,
     })).isRequired,
 
-    // This function sends all the rolls to the server for this
-    // player via socket. This takes a list of integers that
-    // represents the rolls that this player has done. If the
-    // roll contains sixes, based on the game rules, the player
-    // may roll again through another sendRolls, function (the
-    // player will know after rendering is over) the total
-    // number of rolls is determined by the game rules
+    // This function tells the server to roll via player socket.
+    // it takes no parameter since the actual rolling will be
+    // performed in the server (to prevent cheating)
     sendRolls: PropTypes.func.isRequired,
     // This is a function that will send a given, nicely
     // formatted action back to the socket. This function takes
@@ -273,8 +269,73 @@ export default class Game extends React.Component {
   }
 
   static _fixHistoryBoundary(history, history_received) {
-    // TODO: fix history recursively!
-    return {history, history_received}
+    // recursive case: if there is 0 in history_received, that has to move
+    const r_turns = Object.keys(history_received).map(v => parseInt(v))
+    if (r_turns.includes(0)) {
+      const old_turn = history.length === 0
+        ? {turn: 0, rolls: [], actions: []}
+        : history[0]
+      const new_turn = history_received[0]
+      const h_zero = Game._completedHistory(old_turn, new_turn)
+      // make sure there's a slot for zero
+      history.length === 0 ? history.push(null) : null
+      history[0] = h_zero
+      delete history_received[0]
+      return Game._fixHistoryBoundary(history, history_received)
+    }
+
+    // base case: no boundary elements, so nothing to do here
+    const max_hist = history.length - 1
+    if (!(r_turns.includes(max_hist) || r_turns.includes(max_hist + 1))) {
+      return {history, history_received}
+    }
+
+    // recursive case: if we contain the boundary element, fix it
+    if (r_turns.includes(max_hist)) {
+      const old_turn = history[max_hist]
+      const new_turn = history_received[max_hist]
+      const completed = Game._completedHistory(old_turn, new_turn)
+      history[max_hist] = completed
+      delete history_received[max_hist]
+      return Game._fixHistoryBoundary(history, history_received)
+    }
+
+    // check whether the boundary element seems satisfactory,
+    // base case: if it's not, that means we're still waiting
+    // on stuffs for its turn so we'd leave it at that
+    if (!Game._satisfactoryTurn(history[max_hist])) {
+      return {history, history_received}
+    }
+
+    // now, it's good, check if we have received the next turn.
+    // base case: if not, we stop here
+    if (!r_turns.includes(max_hist + 1)) {
+      return {history, history_received}
+    }
+
+    // recursive case: we have the next turn, fix it and i
+    // add it to the history
+    const old_turn = {turn: max_hist + 1, rolls: [], actions: []}
+    const new_turn = history_received[max_hist + 1]
+    const completed = Game._completedHistory(old_turn, new_turn)
+    history.push(completed)
+    delete history_received[max_hist + 1]
+    return Game._fixHistoryBoundary(history, history_received)
+  }
+
+  _satisfactoryTurn(turn) {
+    // check that each roll has a corresponding action basically
+    if (turn.rolls.length === 0) {
+      return false
+    }
+    if (turn.actions.length === 0) {
+      return false
+    }
+    const rolls = H.flatten(turn.rolls.map(r => r.rolls))
+    rolls.sort()
+    const action_rolls = turn.actions.map(a => a.roll)
+    action_rolls.sort()
+    return H.isEqual(rolls, action_rolls)
   }
 
   handleReceiveTurnInfo(turn_info) {
@@ -336,6 +397,9 @@ export default class Game extends React.Component {
       display_rules={this.state.display_rules}
       viewRules={this.viewRules}
       closeRules={this.closeRules}
+      sendRolls={this.props.sendRolls}
+      sendAction={this.props.sendAction}
+      finishTurn={this.props.finishTurn}
     />
   }
 }
@@ -380,6 +444,9 @@ function GameView(props) {
         history={props.history}
         {...getTurnFields(props)}
         viewRules={props.viewRules}
+        sendRolls={props.sendRolls}
+        sendAction={props.sendAction}
+        finishTurn={props.finishTurn}
       />
       <svg
         width={side_length} height={side_length} id="game-wrapper"

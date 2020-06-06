@@ -59,9 +59,10 @@ Socket.socketSubscribe = function socketSubscribe() {
     this.perform(Socket.Perform.APPEAR)
 
     const self = this
-    Socket.funcs.sendRolls = function sendRolls(rolls) {
+    Socket.funcs.sendRolls = function sendRolls() {
+      // roll will be performed in the server
       self.perform(
-        Socket.Perform.ROLL, {participant_id: Socket.data.myId, rolls}
+        Socket.Perform.ROLL, {participant_id: Socket.data.myId}
       )
     }
     Socket.funcs.sendAction = function sendAction(action) {

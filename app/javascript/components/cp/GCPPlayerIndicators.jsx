@@ -2,6 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 
 import C from "utils/constants"
+import H from "utils/helpers"
 import PT from "utils/prop_types"
 
 import Dice from "components/Dice"
@@ -74,8 +75,10 @@ function PlayerIndicator(props) {
   const height_style = {height: props.height, maxHeight: props.height}
 
   const common = {accent_color: props.player.color, width: props.height}
-  const rolls = props.rolls.length === 0 ? "---" : (
-    props.rolls.map((r, i) => <Dice key={i} width={props.height} {...common} />)
+  const rolls = props.rolls.length === 0 ? "" : (
+    props.rolls.map((r, i) => {
+      return <Dice key={i} width={props.height} value={r} {...common} />
+    })
   )
   return (
     <div className="player-indicator" style={height_style}>

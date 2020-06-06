@@ -60,8 +60,38 @@ class PlayChannel < ApplicationCable::Channel
 
   def roll(data)
     participant_id = data["participant_id"]
-    rolls = data["rolls"]
-    # TODO: perform the roll, then send a history
+
+    current_turn = Turn.current_turn(@game)
+    turn = Turn.find_by(game: @game, turn: current_turn)
+    turn_info = get_turn_info(turn)
+    turn_pid = turn_info[:turn_participant_id]
+
+    # do nothing if it's not their turn
+    if (participant_id != turn_pid)
+      puts "#{participant_id} tried rolling but turn's not their turn"
+      return
+    end
+
+    is_rolling = turn_info[:is_rolling]
+    if !is_rolling
+      puts "#{participant_id} tried rolling but is_rolling=false"
+      return
+    end
+
+    num_rolls = turn_info[:num_rolls]
+    rolls = (1..num_rolls).collect{ |c| rand(1..6) }
+    roll = Roll.create(turn: turn, roll_hint: Roll.hint_from_rolls(rolls))
+
+    if !roll.valid?
+      # TODO: not sure how to handle this in the client...
+      # should check if I can send it twice
+      puts "ERROR - roll is invalid (#{roll})."
+      puts "ERRORS: #{roll.errors.messages}"
+      return
+    end
+
+    broadcast_turn_history(E_HISTORY, turn)
+    broadcast_turn_info(E_TURN_INFO, turn)
   end
 
   def action(data)
@@ -157,18 +187,13 @@ class PlayChannel < ApplicationCable::Channel
 
   def broadcast_turn_info(event, turn)
     turn_info = get_turn_info(turn)
-    if !turn_info[:is_turn_order_determination] && !@turn_outcome_determined
-      set_players_in_turn_order
-    end
-    turn_participant_id = @players_in_turn_order[turn.turn]
 
     ActionCable.server.broadcast(
       @channel,
       event: event,
-      # TODO: put the id of the player whose turn it is
-      turn_participant_id: turn_participant_id,
+      turn_participant_id: turn_info[:turn_participant_id],
+      turn: turn_info[:turn],
       is_turn_order_determination: turn_info[:is_turn_order_determination],
-      turn: turn.turn,
       is_rolling: turn_info[:is_rolling],
       num_rolls: turn_info[:num_rolls],
       is_moving: turn_info[:is_moving],
@@ -206,11 +231,21 @@ class PlayChannel < ApplicationCable::Channel
 
   def get_turn_info(turn)
     is_turn_order_determination = turn.turn < @game.players.count
+    if !is_turn_order_determination && !@turn_outcome_determined
+      set_players_in_turn_order
+    end
+
     is_rolling, num_rolls = is_rolling?(turn, is_turn_order_determination)
     is_moving, remaining_rolls = is_moving?(
       turn, is_rolling, is_turn_order_determination
     )
+
+    num_players = @players_in_turn_order.length()
+    turn_participant_id = @players_in_turn_order[turn.turn % num_players]
+
     return {
+      turn: turn.turn,
+      turn_participant_id: turn_participant_id,
       is_turn_order_determination: is_turn_order_determination,
       is_rolling: is_rolling,
       num_rolls: num_rolls,

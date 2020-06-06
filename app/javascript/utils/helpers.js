@@ -1,8 +1,11 @@
-import {isEqual, flatten} from "lodash"
+import {isEqual, flatten, reduce} from "lodash"
 
 const H = {
   isEqual,
   flatten,
+  sum(array) {
+    return reduce(array, (sum, num) => sum + num, 0)
+  },
   keySorter(key) {
     return function sorter(o1, o2) {
       if (o1[key] === o2[key]) {
