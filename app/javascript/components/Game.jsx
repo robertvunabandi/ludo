@@ -303,7 +303,7 @@ export default class Game extends React.Component {
     // check whether the boundary element seems satisfactory,
     // base case: if it's not, that means we're still waiting
     // on stuffs for its turn so we'd leave it at that
-    if (!Game._satisfactoryTurn(history[max_hist])) {
+    if (!Game._isTurnSatisfactory(history[max_hist])) {
       return {history, history_received}
     }
 
@@ -323,7 +323,7 @@ export default class Game extends React.Component {
     return Game._fixHistoryBoundary(history, history_received)
   }
 
-  _satisfactoryTurn(turn) {
+  static _isTurnSatisfactory(turn) {
     // check that each roll has a corresponding action basically
     if (turn.rolls.length === 0) {
       return false

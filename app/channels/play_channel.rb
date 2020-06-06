@@ -66,7 +66,6 @@ class PlayChannel < ApplicationCable::Channel
     turn_info = get_turn_info(turn)
     turn_pid = turn_info[:turn_participant_id]
 
-    # do nothing if it's not their turn
     if (participant_id != turn_pid)
       puts "#{participant_id} tried rolling but turn's not their turn"
       return
@@ -106,12 +105,46 @@ class PlayChannel < ApplicationCable::Channel
     # TODO: validate the participant that sent the action
     # TODO: create the action
     # TODO: broadcast the turn info through history
+    return
+    broadcast_turn_history(E_HISTORY, turn)
+    broadcast_turn_info(E_TURN_INFO, turn)
   end
 
   def finish_turn(data)
-    # TODO: perfrom the action, which will finish the current turn
-    # this must be perform only by the current player whose turn it is
-    # then send a new turn info
+    participant_id = data["participant_id"]
+
+    current_turn = Turn.current_turn(@game)
+    turn = Turn.find_by(game: @game, turn: current_turn)
+    turn_info = get_turn_info(turn)
+    turn_pid = turn_info[:turn_participant_id]
+
+    if (participant_id != turn_pid)
+      puts "#{participant_id} tried finishing turn but turn's not their turn"
+      return
+    end
+
+    is_rolling = turn_info[:is_rolling]
+    if is_rolling
+      puts "#{participant_id} tried finishing turn but is_rolling=true"
+      return
+    end
+    is_moving = turn_info[:is_moving]
+    if is_moving
+      puts "#{participant_id} tried finishing turn but is_moving=true"
+      return
+    end
+
+    next_turn = Turn.create_next_turn(@game)
+    saved_nt = next_turn.save
+    if !saved_nt
+      # TODO: not sure what to do if it fails
+      puts "ERROR: next_turn didn't save - #{next_turn}"
+      puts "ERRORS: #{next_turn.errors.messages}"
+      return
+    end
+
+    broadcast_turn_history(E_HISTORY, next_turn)
+    broadcast_turn_info(E_TURN_INFO, next_turn)
   end
 
   def history_request(data)
