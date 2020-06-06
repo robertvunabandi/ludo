@@ -236,16 +236,17 @@ class PlayChannel < ApplicationCable::Channel
 
   def set_players_in_turn_order
     # order the players from largest rolls sum to smallest rolls sum
-    # TODO: not sure if this method works. will need to test it out
     old_order = @players_in_turn_order
-    turns = @game.turns.order(:created_at).first(@players.count)
+    turns = @game.turns.order(:turn).first(@players.count)
     # there should be only one roll for each players because of
     # turn order determination
     outcomes = turns.collect{ |t| Roll.rolls_from_hint(t.rolls.first.roll_hint) }
+
     mapping = {}
-    for i in 0...num_players
+    for i in 0...old_order.length
       mapping[old_order[i]] = outcomes[i].inject(0){ |sum, roll| sum - roll }
     end
+
     @players_in_turn_order = old_order.sort_by { |p| mapping[p] }
   end
 

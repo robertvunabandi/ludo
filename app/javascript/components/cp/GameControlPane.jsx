@@ -61,7 +61,10 @@ export default class GameControlPane extends React.Component {
 
     this.selectRoll = this.selectRoll.bind(this)
     this.getActioning = this.getActioning.bind(this)
+    this._getActioningNotMyTurn = this._getActioningNotMyTurn.bind(this)
     this._getTurnDeterminationActioning = this._getTurnDeterminationActioning.bind(this)
+    this._getActioningRolling = this._getActioningRolling.bind(this)
+    this._getActioningDoneWithTurn = this._getActioningDoneWithTurn.bind(this)
     this._endTurn = this._endTurn.bind(this)
   }
 
@@ -70,42 +73,53 @@ export default class GameControlPane extends React.Component {
   }
 
   getActioning() {
+    if (!this.props.is_my_turn) {
+      return this._getActioningNotMyTurn()
+    }
+
+    // now it's my turn
     if (this.props.is_turn_order_determination) {
       return this._getTurnDeterminationActioning()
     }
-    const tp_text = this.props.is_my_turn
-      ? "your"
-      : playerwithid(
-        this.props.players, this.props.turn_participant_id
-      ).username + "'s"
-    const turn_person = (<b>{tp_text}</b>)
-    // TODO: adjust instructions based on what it's supposed to be
-    const instruction = this.props.is_my_turn
-      ? <span id="gcp-i-inner">It's {turn_person} turn!</span>
-      : <span id="gcp-i-inner">It's {turn_person} turn! WAIT until they are done.</span>
-    return {
-      instruction: instruction,
-      action_text: "ACTION",
-      actionFunction: () => console.log("ACTION"),
+    if (this.props.is_rolling) {
+      return this._getActioningRolling()
     }
+
+    // TODO: write this function somehow
+    const can_still_perform_actions = true
+    if (!can_still_perform_actions) {
+      return this._getActioningDoneWithTurn()
+    }
+
+    const instruction = (
+      <span id="gcp-i-inner">
+        It's your turn. Now, select a roll, then select a piece, to perform
+        an action with it. There is only one possible action per piece per
+        roll.
+      </span>
+    )
+    const action_text = "PERFORM"
+    // TODO: implement this function
+    const actionFunction = () => console.log("Action")
+    return {instruction, action_text, actionFunction}
+  }
+
+  _getActioningNotMyTurn() {
+    const turn_player = playerWithId(
+      this.props.players, this.props.turn_participant_id
+    )
+    const instruction = (
+      <span id="gcp-i-inner">
+        It's {turn_player.username}'s turn. WAIT until it's your turn.
+      </span>
+    )
+    const action_text = ""
+    const actionFunction = () => null
+    return {instruction, action_text, actionFunction}
   }
 
   _getTurnDeterminationActioning() {
-    // if not my turn, we just wait on other players
-    if (!this.props.is_my_turn) {
-      const turn_player = playerWithId(
-        this.props.players, this.props.turn_participant_id
-      )
-      const instruction = (
-        <span>
-          It's {turn_player.username}'s turn. just wait until they roll.
-        </span>
-      )
-      const action_text = ""
-      const actionFunction = () => null
-      return {instruction, action_text, actionFunction}
-    }
-
+    // assume it's my turn
     // if it's time to roll, let the player roll
     if (this.props.is_rolling) {
       const instruction = (
@@ -133,6 +147,44 @@ export default class GameControlPane extends React.Component {
     const instruction = (
       <span id="gcp-i-inner">
         <b>Turn Order Determination:</b> there are your rolls. Press OK
+        to finish your turn.
+      </span>
+    )
+    const action_text = "OK"
+    const actionFunction = this._endTurn
+    return {instruction, action_text, actionFunction}
+  }
+
+  _getActioningRolling() {
+    // assume my turn and we're rolling
+    const turn = this.props.history[this.props.turn]
+    const rolling_again = GameControlPane._rollingAgain(turn)
+    const instruction = (
+      <span id="gcp-i-inner">
+        It's your turn.
+        {rolling_again ? "You rolled a six! " : ""}
+        Time to roll {rolling_again ? "again" : ""}!
+      </span>
+    )
+    const action_text = "ROLL"
+    const actionFunction = this.props.sendRolls
+    return {instruction, action_text, actionFunction}
+  }
+
+  static _rollingAgain(turn) {
+    // assumes we're rolling
+    if ((!turn) || (!turn.rolls)) {
+      return false
+    }
+    // since we're already rolling, we got to roll again by
+    // virtue of having rolled a 6
+    return H.flatten(turn.rolls.map(r => r.rolls)).includes(6)
+  }
+
+  _getActioningDoneWithTurn() {
+    const instruction = (
+      <span id="gcp-i-inner">
+        There's no more possible actions to do. Press OK
         to finish your turn.
       </span>
     )
