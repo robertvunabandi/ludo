@@ -36,7 +36,6 @@ export default class GameControlPane extends React.Component {
       action: PT.action, piece: PT.piece, roll: PT.roll.isRequired
     }),
 
-    // TODO: we need methods to send last roll and chosen actions up the chain
     viewRules: PropTypes.func.isRequired,
     // same as in Game.jsx
     sendRolls: PropTypes.func.isRequired,
