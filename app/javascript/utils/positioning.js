@@ -95,19 +95,28 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
 P.hasPossibleMoves = function hasPossibleMoves(pieces, color, rolls, rules) {
   for (const roll of rolls) {
     for (const piece_id in pieces[color]) {
-      for (const action_name of MOVE_ACTIONS) {
-        const action = {
-          action_id: -1, action: action_name, roll, piece: piece_id
-        }
-        const outcomes = P.getActionOutcome(pieces, color, action, rules)
-        if (outcomes.errors) {
-          continue
-        }
+      const outcomes = P.getValidActions(pieces, color, piece_id, roll, rules)
+      if (outcomes.length > 0) {
         return true
       }
     }
   }
   return false
+}
+
+P.getValidActions = function getValidActions(
+  pieces, color, piece_id, roll, rules
+) {
+  const outcomes = []
+  for (const action_name of MOVE_ACTIONS) {
+    const action = {action: action_name, roll, piece: piece_id}
+    const current_outcome = P.getActionOutcome(pieces, color, action, rules)
+    if (current_outcome.errors && current_outcome.errors.length > 0) {
+      continue
+    }
+    outcomes.push(current_outcome)
+  }
+  return outcomes
 }
 
 P.getActionOutcome = function getActionOutcome(
@@ -120,19 +129,23 @@ P.getActionOutcome = function getActionOutcome(
   switch (action.action) {
     // ========================================================================
     case C.action.BEGIN:
-      if (!piece.isHome() || (action.roll !== 6)) {
-        // CANCEL
-        return {errors: ["piece is not home or action is not a 6"]}
+      if (!piece.isHome()) {
+        return {errors: ["piece is not home"]}
+      }
+      if (action.roll !== 6) {
+        return {errors: ["roll is not a 6"]}
       }
 
       piece = piece.moveOut()
 
-      if (P.newPositionValidWithRules(piece, pieces, rules)) {
-        // CANCEL
+      if (!P.newPositionValidWithRules(piece, pieces, rules)) {
         return {errors: [INVALID_WITH_RULES]}
       }
 
-      return {outcomes: [piece, ...P.handleCapturesFromPiece(piece, pieces, rules)]}
+      return {
+        action,
+        outcomes: [piece, ...P.handleCapturesFromPiece(piece, pieces, rules)]
+      }
 
     // ========================================================================
     case C.action.MOVE:
@@ -148,16 +161,16 @@ P.getActionOutcome = function getActionOutcome(
 
       if (strict_at_graduation && piece.isAboutToEnterGraduationLane() && action.roll === 1) {
         piece = pice.forward(1)
-        if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+        if (!P.newPositionValidWithRules(piece, pieces, rules)) {
           return {errors: [INVALID_WITH_RULES]}
         }
-        return {outcomes: [piece]}
+        return {action, outcomes: [piece]}
       }
 
       if (piece.isGraduating()) {
         if (previous_loc.position === 6 && action.roll === 6) {
           console.assert(roll_six_to_graduate)
-          return {outcomes: [piece.make_graduated()]}
+          return {action, outcomes: [piece.make_graduated()]}
         }
 
         if (strict_at_graduation) {
@@ -169,10 +182,10 @@ P.getActionOutcome = function getActionOutcome(
           if (piece.location().position === 6 && !roll_six_to_graduate) {
             piece = piece.makeGraduated()
           }
-          if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+          if (!P.newPositionValidWithRules(piece, pieces, rules)) {
             return {errors: ["Roll is invalid with current game rules"]}
           }
-          return {outcomes: [piece]}
+          return {action, outcomes: [piece]}
         }
 
         try {
@@ -185,10 +198,10 @@ P.getActionOutcome = function getActionOutcome(
         if (piece.location().position === 6 && !roll_six_to_graduate) {
           piece = piece.makeGraduated()
         }
-        if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+        if (!P.newPositionValidWithRules(piece, pieces, rules)) {
           return {errors: [INVALID_WITH_RULES]}
         }
-        return {outcomes: [piece]}
+        return {action, outcomes: [piece]}
       }
 
       // NOW the piece is not graduating
@@ -200,31 +213,33 @@ P.getActionOutcome = function getActionOutcome(
         return {errors: ["invalid moves makes piece exceed graduation entrnace"]}
       }
 
-      if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
+      if (!P.newPositionValidWithRules(piece, pieces, rules)) {
         return {errors: [INVALID_WITH_RULES]}
       }
       const outcomes = [piece]
       if (!piece.isGraduating()) {
         oucomes.push(...P.handleCapturesFromPiece(piece, pieces, rules))
       }
-      return {outcomes}
+      return {action, outcomes}
     // ========================================================================
     case C.action.RESCUE:
-      if (!piece.isCaptured() || action.roll !== 6) {
-        // CANCEL
-        return {errors: ["piece isn't captured or didn't roll a 6"]}
+      if (!piece.isCaptured()) {
+        return {errors: ["piece isn't captured"]}
+      }
+      if (action.roll !== 6) {
+        return {errors: ["didn't roll a 6"]}
       }
 
-      return {outcomes: [piece.makeReleased()]}
+      return {action, outcomes: [piece.makeReleased()]}
     // ========================================================================
     case C.action.NULL:
       // null action, don't do anything
-      return {outcomes: []}
+      return {action, outcomes: []}
     // ========================================================================
     case C.action.STOP:
       // stop action, don't do anything, TODO but somewhere outside the
       // game we should check for stop action and end the game
-      return {outcomes: []}
+      return {action, outcomes: []}
   }
 }
 
@@ -245,7 +260,7 @@ P.handleCapturesFromPiece = function handleCapturesFromPiece(piece, pieces, rule
   const pieces_at_location = P.piecesAtLocation(pieces, piece.location())
   const other_pieces = pieces_at_location.filter(p => !piece.sameColor(p))
   if (other_pieces.length === 0) {
-    return
+    return []
   }
 
   // capture the other pieces, put the updated into outcomes

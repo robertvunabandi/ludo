@@ -4,6 +4,9 @@ import PropTypes from "prop-types"
 import C from "utils/constants"
 import H from "utils/helpers"
 import PT from "utils/prop_types"
+import positioning from "utils/positioning"
+
+import PieceState from "utils/piece_state"
 
 import Dice from "components/Dice"
 
@@ -17,8 +20,10 @@ export default class GameControlPane extends React.Component {
     side_length: PropTypes.number.isRequired,
     my_id: PropTypes.number.isRequired,
 
-    // same as in Game.jsx
+    // same as in Game.jsx for those that are in props
     players: PT.players.isRequired,
+    pieces: PT.pieces.isRequired,
+    rules: PT.rules.isRequired,
     history: PT.history.isRequired,
 
     // all of these are state fields of Game.jsx, see there for info
@@ -88,22 +93,29 @@ export default class GameControlPane extends React.Component {
       return this._getActioningRolling()
     }
 
-    // TODO: write this function somehow
-    const can_still_perform_actions = true
+
+    const my_color = playerWithId(this.props.players, this.props.my_id).color
+    const can_still_perform_actions = positioning.hasPossibleMoves(
+      this.props.pieces, my_color, this.props.remaining_rolls, this.props.rules
+    )
     if (!can_still_perform_actions) {
+      // TODO: we still have to send STOP actions
+      console.log("NO POSSIBLE MOVES!!! DIDN'T SENT NULL ACTIONS")
       return this._getActioningDoneWithTurn()
     }
 
     const instruction = (
       <span id="gcp-i-inner">
         It's your turn. Now, select a roll, then select a piece, to perform
-        an action with it. There is only one possible action per piece per
+        an action with it. There is at most one possible action per piece per
         roll.
       </span>
     )
     const action_text = "PERFORM"
     // TODO: implement this function
-    const actionFunction = () => console.log("Action")
+    const actionFunction = () => console.log(
+      "Action", this.props.selected_piece, this.state.selected_roll
+    )
     return {instruction, action_text, actionFunction}
   }
 
@@ -227,15 +239,14 @@ function GameControlPaneView(props) {
   // ROLLS
   const gcp_dice_width = props.height / 2.6
   const my_color = playerWithId(props.players, props.my_id).color
-  // const [s_id, s_index] = props.selected_roll
   const my_rolls = getMyRolls(props.history, props.turn, props.selected_roll)
-  const gcp_rolls = my_rolls.map((r, i) => (
+  const gcp_rolls = my_rolls.filter(r => !r.used).map((r, i) => (
     <Dice
       key={i}
       width={props.height / 2.6}
       value={r.roll}
       accent_color={my_color}
-      roll_id={[r.id, r.index]}
+      roll_id={[r.id, r.index, r.roll]}
       selected={r.selected}
       onClick={props.selectRoll} />
   ))
@@ -295,6 +306,13 @@ function getMyRolls(history, turn, selected_roll) {
   }
   const actual_rolls = []
   const [s_id, s_index] = !!selected_roll ? selected_roll : [-1, -1]
+
+  // we want to make use that we remove rolls that we mark rolls that
+  // we have already used, but we don't want to mark duplicates twice
+  // so, the isRollUsed will check against a list of rolls that are
+  // used and remove from there.
+  const used_rolls = !!turn.actions ? turn.actions.map(a => a.roll) : []
+
   rolls.forEach(rs => {
     rs.rolls.forEach((r, i) => {
       actual_rolls.push({
@@ -302,9 +320,18 @@ function getMyRolls(history, turn, selected_roll) {
         id: rs.roll_id,
         index: i,
         selected: (s_id === rs.roll_id) && (s_index === i),
+        used: isRollUsed(r, used_rolls),
       })
     })
   })
   return actual_rolls
+}
+
+function isRollUsed(r, used_rolls) {
+  if (used_rolls.includes(r)) {
+    used_rolls.splice(used_rolls.indexOf(r), 1)
+    return true
+  }
+  return false
 }
 
