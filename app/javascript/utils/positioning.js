@@ -2,6 +2,12 @@ import C from "utils/constants"
 import H from "utils/helpers"
 import PieceState from "utils/piece_state"
 
+
+const INVALID_WITH_RULES = (
+  "new position would not be valid with current game rules"
+)
+const MOVE_ACTIONS = [C.action.BEGIN, C.action.MOVE, C.action.RESCUE]
+
 const P = {}
 
 P.getPiecesPositionsFromHistory = function getPiecesPositionsFromHistory(
@@ -86,9 +92,22 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
   return
 }
 
-const INVALID_WITH_RULES = (
-  "new position would not be valid with current game rules"
-)
+P.hasPossibleMoves = function hasPossibleMoves(pieces, color, rolls, rules) {
+  for (const roll of rolls) {
+    for (const piece_id in pieces[color]) {
+      for (const action of MOVE_ACTIONS) {
+        const action = {action_id: -1, action, roll, piece: piece_id}
+        const outcomes = P.getActionOutcome(pieces, color, action, rules)
+        if (outcomes.errors) {
+          continue
+        }
+        return true
+      }
+    }
+  }
+  return false
+}
+
 P.getActionOutcome = function getActionOutcome(
   pieces, color, action, rules
 ) {
