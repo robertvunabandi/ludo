@@ -36,8 +36,8 @@ function GCPPlayerIndicatorsView(props) {
   const players_order = props.is_turn_order_determination
     ? props.players.map(p => p.participant_id)
     : getOrderFromHistory(props.players, props.history)
-  const relevant_history = props.history.slice(
-    props.round, props.round + props.players.length
+  const relevant_history = getRelevantHistory(
+    props.history, props.round, props.players.length
   )
   const small_height = props.height / 4
   const pi_height_style = {height: small_height, maxHeight: small_height}
@@ -68,6 +68,10 @@ function getOrderFromHistory(players, history) {
   })
   player_ids.sort(H.keySorter("points"))
   return player_ids.map(p => p.id)
+}
+
+function getRelevantHistory(history, round, num_players) {
+  return history.slice(round * num_players, round * (num_players + 1))
 }
 
 function PlayerIndicator(props) {

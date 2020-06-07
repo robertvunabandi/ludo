@@ -213,8 +213,9 @@ export default class Game extends React.Component {
   }
 
   updateHistory(history, history_received) {
+    const copies = Game._makeHistoryCopies(history, history_received)
     const fixed_state_update = Game._fixHistoryBoundary(
-      history, history_received
+      copies.history, copies.history_received, this.props.players.length
     )
 
     // catch up on the history that we don't have by requesting it
@@ -223,6 +224,13 @@ export default class Game extends React.Component {
       this.props.requestHistory(fixed_state_update.history.length)
     }
     this.setState(fixed_state_update)
+  }
+
+  static _makeHistoryCopies(history, history_received) {
+    return {
+      history: JSON.parse(JSON.stringify(history)),
+      history_received: JSON.parse(JSON.stringify(history_received)),
+    }
   }
 
   static _sameHistory(old_turn, new_turn) {
@@ -268,7 +276,7 @@ export default class Game extends React.Component {
     return {turn: old_turn.turn, rolls, actions}
   }
 
-  static _fixHistoryBoundary(history, history_received) {
+  static _fixHistoryBoundary(history, history_received, num_players) {
     // recursive case: if there is 0 in history_received, that has to move
     const r_turns = Object.keys(history_received).map(v => parseInt(v))
     if (r_turns.includes(0)) {
@@ -281,7 +289,7 @@ export default class Game extends React.Component {
       history.length === 0 ? history.push(null) : null
       history[0] = h_zero
       delete history_received[0]
-      return Game._fixHistoryBoundary(history, history_received)
+      return Game._fixHistoryBoundary(history, history_received, num_players)
     }
 
     // base case: no boundary elements, so nothing to do here
@@ -297,13 +305,13 @@ export default class Game extends React.Component {
       const completed = Game._completedHistory(old_turn, new_turn)
       history[max_hist] = completed
       delete history_received[max_hist]
-      return Game._fixHistoryBoundary(history, history_received)
+      return Game._fixHistoryBoundary(history, history_received, num_players)
     }
 
     // check whether the boundary element seems satisfactory,
     // base case: if it's not, that means we're still waiting
     // on stuffs for its turn so we'd leave it at that
-    if (!Game._isTurnSatisfactory(history[max_hist])) {
+    if (!Game._isTurnSatisfactory(history[max_hist], num_players)) {
       return {history, history_received}
     }
 
@@ -320,17 +328,23 @@ export default class Game extends React.Component {
     const completed = Game._completedHistory(old_turn, new_turn)
     history.push(completed)
     delete history_received[max_hist + 1]
-    return Game._fixHistoryBoundary(history, history_received)
+    return Game._fixHistoryBoundary(history, history_received, num_players)
   }
 
-  static _isTurnSatisfactory(turn) {
+  static _isTurnSatisfactory(turn, num_players) {
     // check that each roll has a corresponding action basically
     if (turn.rolls.length === 0) {
       return false
     }
+    // for turn order determination, this there are no actions
+    if (turn.rolls.length > 0 && turn.turn < num_players) {
+      return true
+    }
+    // no actions means not satisfactory otherwise
     if (turn.actions.length === 0) {
       return false
     }
+
     const rolls = H.flatten(turn.rolls.map(r => r.rolls))
     rolls.sort()
     const action_rolls = turn.actions.map(a => a.roll)
