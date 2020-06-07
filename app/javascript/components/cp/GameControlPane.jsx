@@ -30,7 +30,10 @@ export default class GameControlPane extends React.Component {
     is_moving: PropTypes.bool.isRequired,
     remaining_rolls: PropTypes.arrayOf(PropTypes.number),
     turn: PropTypes.number,
-    selected_piece: PropTypes.arrayOf(PropTypes.number),
+    selected_piece: PropTypes.shape({
+      color: PT.color.isRequired,
+      id: PropTypes.number.isRequired,
+    }),
     last_roll: PropTypes.arrayOf(PropTypes.number),
     chosen_action: PropTypes.shape({
       action: PT.action, piece: PT.piece, roll: PT.roll.isRequired

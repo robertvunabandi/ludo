@@ -147,7 +147,7 @@ export default class Game extends React.Component {
       //   player made last time
       // - selected_piece: after rolling, the player selects a piece
       //   and is presented with a set of actions. This is pertaining
-      //   to that.
+      //   to that. It's an object that has a color and an ID.
       // - chosen_action: an action that the player would like to do
       //   for the piece they selected and action they chose
       selected_piece: null,
@@ -381,13 +381,14 @@ export default class Game extends React.Component {
   handlePieceClick(color, piece_id) {
     this.setState((state, props) => {
       if (!state.selected_piece) {
-        return {selected_piece: [color, piece_id]}
+        return {selected_piece: {color, id: piece_id}}
       }
-      const [old_color, old_piece_id] = state.selected_piece
+      const old_color = state.selected_piece.color
+      const old_piece_id = state.selected_piece.id
       if (old_color === color && old_piece_id === piece_id) {
         return {selected_piece: null}
       }
-      return {selected_piece: [color, piece_id]}
+      return {selected_piece: {color, id: piece_id}}
     })
   }
 
@@ -436,7 +437,8 @@ function GameView(props) {
   })
   // if a piece is selected, make it selected
   if (props.selected_piece) {
-    const [s_color, s_id] = props.selected_piece
+    const s_color = props.selected_piece.color
+    const s_id = props.selected_piece.id
     pieces[s_color][s_id].selected = true
   }
 
