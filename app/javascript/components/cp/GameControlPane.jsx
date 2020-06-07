@@ -206,28 +206,6 @@ export default class GameControlPane extends React.Component {
   }
 }
 
-/* TODO remove this comment block
-Here are the different scenarios that could happen here (this would
-help figure out how to display things):
-
-A. we're in turn determination
-
-1. it's my turn, and I am supposed to roll
-   Here, I need to know how much everyone has rolled so that the
-   result makes sense to me
-2. it's not my turn, and they are rolling
-   Here, I still need to know the above
-
-B. we're not in turn determination
-
-1. it's my turn, and:
-   a. I am supposed to roll (first time rolling this turn)
-   b. I am still rolling because I rolled a 6
-   c. Now, I am completeting an action for one of my rolls
-2. it's NOT my turn, so it's someone else's turn, and same subcases
-   a, b, c above
-*/
-
 function GameControlPaneView(props) {
   // OVERALL
   const heightStyle = {height: props.height, maxHeight: props.height}
