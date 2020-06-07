@@ -247,7 +247,7 @@ function GameControlPaneView(props) {
   const gcp_dice_width = props.height / 2.6
   const my_color = playerWithId(props.players, props.my_id).color
   // const [s_id, s_index] = props.selected_roll
-  const my_rolls = getMyRolls(props.history, props.selected_roll)
+  const my_rolls = getMyRolls(props.history, props.turn, props.selected_roll)
   const gcp_rolls = my_rolls.map((r, i) => (
     <Dice
       key={i}
@@ -304,11 +304,11 @@ function playerWithId(players, participant_id) {
   return {}
 }
 
-function getMyRolls(history, selected_roll) {
-  if (history.length === 0) {
+function getMyRolls(history, turn, selected_roll) {
+  if (history.length === 0 || !history[turn]) {
     return []
   }
-  const rolls = history[history.length - 1].rolls
+  const rolls = history[turn].rolls
   if (rolls.length === 0) {
     return []
   }
