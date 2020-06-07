@@ -31,4 +31,24 @@ PT.history = PropTypes.arrayOf(PropTypes.shape({
   })),
 }))
 
+// for rules
+const ValidDiceCounts = [1, 2, 3]
+const RollAfterSixCondition = {Any: "any", All: "all"}
+const RollAfterSixConditions = Object.values(RollAfterSixCondition)
+const GraduationLaneModel =  {
+  NoRestriction: "no-restriction",
+  Strict: "strict",
+  StrictAfterEntry: "strict-after-entry",
+}
+const GraduationLaneModels = Object.values(GraduationLaneModel)
+PT.rules = PropTypes.shape({
+  dice_count: PropTypes.oneOf(ValidDiceCounts).isRequired,
+  roll_after_six: PropTypes.bool.isRequired,
+  roll_after_six_condition: PropTypes.oneOf(RollAfterSixConditions).isRequired,
+  allow_square_doubling: PropTypes.bool.isRequired,
+  capture_into_prison: PropTypes.bool.isRequired,
+  graduation_lane_model: PropTypes.oneOf(GraduationLaneModels).isRequired,
+  roll_six_to_graduate: PropTypes.bool.isRequired,
+}),
+
 export default PT

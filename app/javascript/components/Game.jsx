@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 
 import C from "utils/constants"
 import H from "utils/helpers"
+import PT from "utils/prop_types"
 import positioning from "utils/positioning"
 import GameBoard from "components/GameBoard"
 import GameControlPane from "components/cp/GameControlPane"
@@ -10,29 +11,10 @@ import GamePiece from "components/GamePiece"
 import Modal from "components/Modal"
 
 
-const ValidDiceCounts = [1, 2, 3]
-const RollAfterSixCondition = {Any: "any", All: "all"}
-const RollAfterSixConditions = Object.values(RollAfterSixCondition)
-const GraduationLaneModel =  {
-  NoRestriction: "no-restriction",
-  Strict: "strict",
-  StrictAfterEntry: "strict-after-entry",
-}
-const GraduationLaneModels = Object.values(GraduationLaneModel)
-
-
 export default class Game extends React.Component {
   static propTypes = {
     // game rules
-    rules: PropTypes.shape({
-      dice_count: PropTypes.oneOf(ValidDiceCounts).isRequired,
-      roll_after_six: PropTypes.bool.isRequired,
-      roll_after_six_condition: PropTypes.oneOf(RollAfterSixConditions).isRequired,
-      allow_square_doubling: PropTypes.bool.isRequired,
-      capture_into_prison: PropTypes.bool.isRequired,
-      graduation_lane_model: PropTypes.oneOf(GraduationLaneModels).isRequired,
-      roll_six_to_graduate: PropTypes.bool.isRequired,
-    }).isRequired,
+    rules: PT.rules.isRequired,
 
     // the participant id of the player that is playing this
     // game in this instance
@@ -457,6 +439,8 @@ function GameView(props) {
         my_id={props.my_id}
         side_length={side_length}
         players={props.players}
+        pieces={pieces}
+        rules={props.rules}
         history={props.history}
         {...getTurnFields(props)}
         viewRules={props.viewRules}
