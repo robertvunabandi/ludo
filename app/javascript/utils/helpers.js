@@ -14,7 +14,7 @@ const H = {
       return o1[key] < o2[key] ? -1 : 1
     }
   },
-  allowsSqaureDoubling(rules) {
+  allowsSquareDoubling(rules) {
     return rules["allow_square_doubling"]
   },
   capturesIntoPrison(rules) {

@@ -1,6 +1,7 @@
 import PropTypes from "prop-types"
 
 import C from "utils/constants"
+import PieceState from "utils/piece_state"
 
 
 const PT = {}
@@ -49,6 +50,19 @@ PT.rules = PropTypes.shape({
   capture_into_prison: PropTypes.bool.isRequired,
   graduation_lane_model: PropTypes.oneOf(GraduationLaneModels).isRequired,
   roll_six_to_graduate: PropTypes.bool.isRequired,
-}),
+})
+
+PT.subpieces = PropTypes.shape({
+  1: PropTypes.instanceOf(PieceState).isRequired,
+  2: PropTypes.instanceOf(PieceState).isRequired,
+  3: PropTypes.instanceOf(PieceState).isRequired,
+  4: PropTypes.instanceOf(PieceState).isRequired,
+})
+PT.pieces = PropTypes.shape({
+  [C.color.RED]: PT.subpieces.isRequired,
+  [C.color.GREEN]: PT.subpieces,
+  [C.color.YELLOW]: PT.subpieces,
+  [C.color.BLUE]: PT.subpieces,
+})
 
 export default PT

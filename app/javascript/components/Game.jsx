@@ -431,7 +431,6 @@ function GameView(props) {
     ? makeRulesModal(props.rules, props.closeRules)
     : null
 
-
   return (
     <div>
       <GameControlPane

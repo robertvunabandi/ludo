@@ -95,8 +95,10 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
 P.hasPossibleMoves = function hasPossibleMoves(pieces, color, rolls, rules) {
   for (const roll of rolls) {
     for (const piece_id in pieces[color]) {
-      for (const action of MOVE_ACTIONS) {
-        const action = {action_id: -1, action, roll, piece: piece_id}
+      for (const action_name of MOVE_ACTIONS) {
+        const action = {
+          action_id: -1, action: action_name, roll, piece: piece_id
+        }
         const outcomes = P.getActionOutcome(pieces, color, action, rules)
         if (outcomes.errors) {
           continue
