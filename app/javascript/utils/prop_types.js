@@ -5,12 +5,13 @@ import C from "utils/constants"
 
 const PT = {}
 
+PT.color = PropTypes.oneOf(C.COLORS)
 PT.action = PropTypes.oneOf(C.ACTIONS)
 PT.piece = PropTypes.oneOf([1, 2, 3, 4])
 PT.roll = PropTypes.oneOf([1, 2, 3, 4, 5, 6])
 
 PT.players = PropTypes.arrayOf(PropTypes.shape({
-  color: PropTypes.string.isRequired,
+  color: PT.color.isRequired,
   is_host: PropTypes.bool.isRequired,
   participant_id: PropTypes.number.isRequired,
   username: PropTypes.string.isRequired,
