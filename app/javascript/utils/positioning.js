@@ -74,6 +74,24 @@ P.turnSorter = function turnSorter(available_colors, turn_order_points) {
 P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
   pieces, color, action, rules
 ) {
+  const action_outcome = P.getActionOutcome(pieces, color, action, rules)
+  if (action_outcome.errors) {
+    throw new {errors: action_outcome.erros}
+  }
+  for (const piece of action_outcome.outcomes) {
+    color = piece.color
+    piece_id = outcome_piece.id
+    pieces[color][piece_id] = piece
+  }
+  return
+}
+
+const INVALID_WITH_RULES = (
+  "new position would not be valid with current game rules"
+)
+P.getActionOutcome = function getActionOutcome(
+  pieces, color, action, rules
+) {
   // the given color has just performed the given action.
   // now, we update the pieces accordingly
   let piece = pieces[color][action.piece]
@@ -83,25 +101,22 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
     case C.action.BEGIN:
       if (!piece.isHome() || (action.roll !== 6)) {
         // CANCEL
-        return
+        return {errors: ["piece is not home or action is not a 6"]}
       }
 
       piece = piece.moveOut()
 
       if (P.newPositionValidWithRules(piece, pieces, rules)) {
         // CANCEL
-        return
+        return {errors: [INVALID_WITH_RULES]}
       }
 
-      pieces[color][action.piece] = piece
-      P.handleCapturesFromPiece(piece, pieces, rules)
-      return
+      return {outcomes: [piece, ...P.handleCapturesFromPiece(piece, pieces, rules)]}
 
     // ========================================================================
     case C.action.MOVE:
       if (!piece.isOut()) {
-        // CANCEL
-        return
+        return {errors: ["piece is not out"]}
       }
 
       const previous_loc = piece.location()
@@ -113,33 +128,30 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
       if (strict_at_graduation && piece.isAboutToEnterGraduationLane() && action.roll === 1) {
         piece = pice.forward(1)
         if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
-          return
+          return {errors: [INVALID_WITH_RULES]}
         }
-        pieces[color][action.piece] = piece
-        return
+        return {outcomes: [piece]}
       }
 
       if (piece.isGraduating()) {
         if (previous_loc.position === 6 && action.roll === 6) {
           console.assert(roll_six_to_graduate)
-          pieces[color][action.piece] = piece.make_graduated()
-          return
+          return {outcomes: [piece.make_graduated()]}
         }
 
         if (strict_at_graduation) {
           // the following if condition is that of strict graduation
           if (action.roll !== previous_loc.position + 1) {
-            return
+            return {errors: ["Roll is invalid with current game rules"]}
           }
           piece = piece.forward(1)
           if (piece.location().position === 6 && !roll_six_to_graduate) {
             piece = piece.makeGraduated()
           }
           if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
-            return
+            return {errors: ["Roll is invalid with current game rules"]}
           }
-          pieces[color][action.piece] = piece
-          return
+          return {outcomes: [piece]}
         }
 
         try {
@@ -147,16 +159,15 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
         } catch (e) {
           // CANCEL
           // invalid move, exceeds graduation
-          return
+          return {errors: ["invalid moves makes piece exceeds graduation"]}
         }
         if (piece.location().position === 6 && !roll_six_to_graduate) {
           piece = piece.makeGraduated()
         }
         if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
-          return
+          return {errors: [INVALID_WITH_RULES]}
         }
-        pieces[color][action.piece] = piece
-        return
+        return {outcomes: [piece]}
       }
 
       // NOW the piece is not graduating
@@ -165,36 +176,34 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
       } catch (e) {
         // CANCEL
         // due to overflowing into graduation or other grad lane issues
-        return
+        return {errors: ["invalid moves makes piece exceed graduation entrnace"]}
       }
 
       if (P.newPositionValidWithRules(piece, pieces, rules)) {  // CANCEL
-        return
+        return {errors: [INVALID_WITH_RULES]}
       }
-      pieces[color][action.piece] = piece
+      const outcomes = [piece]
       if (!piece.isGraduating()) {
-        P.handleCapturesFromPiece(piece, pieces, rules)
+        oucomes.push(...P.handleCapturesFromPiece(piece, pieces, rules))
       }
-      return
+      return {outcomes}
     // ========================================================================
     case C.action.RESCUE:
       if (!piece.isCaptured() || action.roll !== 6) {
         // CANCEL
-        return
+        return {errors: ["piece isn't captured or didn't roll a 6"]}
       }
 
-      piece = piece.makeReleased()
-      pieces[color][action.piece] = piece
-      return
+      return {outcomes: [piece.makeReleased()]}
     // ========================================================================
     case C.action.NULL:
       // null action, don't do anything
-      return
+      return {outcomes: []}
     // ========================================================================
     case C.action.STOP:
       // stop action, don't do anything, TODO but somewhere outside the
       // game we should check for stop action and end the game
-      return
+      return {outcomes: []}
   }
 }
 
@@ -218,20 +227,35 @@ P.handleCapturesFromPiece = function handleCapturesFromPiece(piece, pieces, rule
     return
   }
 
-  // capture the other pieces
+  // capture the other pieces, put the updated into outcomes
   const doesnt_capture_into_prison = H.capturesIntoPrison(rules)
+  const outcomes = []
   other_pieces.forEach(p => {
     let np = p.makeCaptured()
     if (doesnt_capture_into_prison) {
       np = np.makeReleased()
     }
-    pieces[np.color][np.id] = np
+    outcomes.push(np)
   })
+  return outcomes
 }
 
 P.piecesAtLocation = function piecesAtLocation(pieces, location) {
-  // TODO: do this
-  throw new Error("FAKE")
+  const {track, position} = location
+  const pieces_at_location = []
+  Object.keys(pieces).forEach(color => {
+    Object.keys(pieces[color]).forEach(piece_id => {
+      const piece = pieces[color][piece_id]
+      if (!piece.isOut()) {
+        return
+      }
+      const ploc = piece.location
+      if (ploc.track === track && ploc.position === position) {
+        pieces_at_location.push(piece)
+      }
+    })
+  })
+  return pieces_at_location
 }
 
 P.overlapsWithOtherPieces = function overlapsWithOtherPieces(piece, pieces) {
