@@ -59,33 +59,28 @@ Socket.socketSubscribe = function socketSubscribe() {
     this.perform(Socket.Perform.APPEAR)
 
     const self = this
+    const data_pid = {participant_id: Socket.data.myId}
     Socket.funcs.sendRolls = function sendRolls() {
       // roll will be performed in the server
-      self.perform(
-        Socket.Perform.ROLL, {participant_id: Socket.data.myId}
-      )
+      self.perform(Socket.Perform.ROLL, data_pid)
     }
     Socket.funcs.sendAction = function sendAction(action) {
-      self.perform(
-        Socket.Perform.ACTION,
-        {
-          participant_id: Socket.data.myId,
-          action: action.action,
-          piece: action.piece,
-          roll: action.roll,
-        },
-      )
+      // action gets mapped to "action" in the server, and I'm thinking
+      // this might be because the action we're performing in the server
+      // is called "action" and so this things automatically maps the
+      // action name to "action" instead of whatever is provided in our
+      // action variable. So, I renamed it to 'action_name'
+      const data = {...data_pid, ...action, action_name: action.action}
+      self.perform(Socket.Perform.ACTION, data)
     }
     Socket.funcs.finishTurn = function finishTurn() {
-      self.perform(
-        Socket.Perform.FINISH_TURN, {participant_id: Socket.data.myId}
-      )
+      self.perform(Socket.Perform.FINISH_TURN, data_pid)
     }
     Socket.funcs.requestHistory = function requestHistory(turn) {
-      self.perform(Socket.Perform.HISTORY_REQUEST, {turn})
+      self.perform(Socket.Perform.HISTORY_REQUEST, {turn, ...data_pid})
     }
     Socket.funcs.requestMaxHistory = function requestMaxHistory() {
-      self.perform(Socket.Perform.HISTORY_REQUEST, {turn: -1})
+      self.perform(Socket.Perform.HISTORY_REQUEST, {turn: -1, ...data_pid})
     }
     Socket.funcs.requestTurnInfo = function requestTurnInfo() {
       self.perform(Socket.Perform.TURN_INFO_REQUEST)
