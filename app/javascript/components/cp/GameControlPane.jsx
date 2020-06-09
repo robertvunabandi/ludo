@@ -276,7 +276,7 @@ function GameControlPaneView(props) {
           round={round}
           viewRules={props.viewRules} />
         <GCPPlayerIndicators
-          is_turn_order_termination={props.is_turn_order_determination}
+          is_turn_order_determination={props.is_turn_order_determination}
           height={props.height}
           players={props.players}
           history={props.history}
