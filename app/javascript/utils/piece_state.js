@@ -163,12 +163,20 @@ export default class PieceState {
       return new_piece
     }
 
-    // TODO: this is bad design... but the case where isAboutToGraduate
+    // TODO: fix comment below... lol. is code even good?
+    // this is bad design... but the case where isAboutToGraduate
     // is handled in positioning. I should move it here because it
     // doesn't really make sense that in this code it's assuming that
     // that case is handled (when it could not by another implementer)
-    if (this.isAboutToEnterGraduationLane() && stop_at_Graduation_entrance) {
-      // TODO: handle that here?
+    if (this.isAboutToEnterGraduationLane() && stop_at_graduation_entrance) {
+      if (count !== 1) {
+        throw new Error("Must roll a 1 to enter graduation")
+      }
+      new_piece._location = {
+        track: GRAD_TRACK,
+        position: 1,
+      }
+      return new_piece
     }
 
     const was_before_graduate = this._location.position < KEY_POSITION.GRADUATE

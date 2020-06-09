@@ -27,6 +27,10 @@ export default class GamePiece extends React.Component {
   }
 
   handleClick(event) {
+    // cannot selected graduated pieces
+    if (this.props.piece.isGraduated()) {
+      return
+    }
     const piece_id = event.target.parentNode.id
     const [_, color, id] = piece_id.split("-")
     this.props.handleOnClick(color, parseInt(id))
@@ -65,7 +69,7 @@ function GamePieceView(props) {
         strokeWidth={C.stroke.width}
         fill={props.piece.color}
       />
-      {props.piece.isGraduating() ? grad_circle : null}
+      {props.piece.isGraduated() ? grad_circle : null}
     </g>
   )
 }

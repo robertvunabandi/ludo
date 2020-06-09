@@ -166,7 +166,8 @@ P.getActionOutcome = function getActionOutcome(
             "because it's strict at graduation, piece must roll a 1 to enter"
           ]}
         }
-        piece = piece.forward(1)
+        piece = piece.forward(1, should_stop_at_grad_entry)
+
         if (!P.newPositionValidWithRules(piece, pieces, rules)) {
           return {errors: [INVALID_WITH_RULES]}
         }

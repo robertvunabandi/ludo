@@ -185,31 +185,59 @@ export default class GameControlPane extends React.Component {
       return this._getActioningDoneWithTurn()
     }
 
-    const instruction = (
-      <span id="gcp-i-inner">
-        It's your turn. Select a roll, then select a piece, then perform
-        an action with it. There is at most one possible action per piece
-        and per roll.
-      </span>
-    )
+    let message = "It's your turn: "
+    if (!this.state.selected_roll) {
+      message += "(*) Select a roll. "
+    }
+    if (!this.props.selected_piece) {
+      message += "(*) Select a piece. "
+    }
+
+    const has_valid_actions = this._hasValidActions()
+    const ready_to_perform = this.state.selected_roll && this.props.selected_piece
+    if (ready_to_perform && has_valid_actions) {
+      message += (
+        "Now press \"PERFORM\". There is at most one possible " +
+        "action per piece and per roll."
+      )
+    }
+    if (ready_to_perform && !has_valid_actions) {
+      message += (
+        "There are no valid moves for that selection... Try another one."
+      )
+    }
+    const instruction = <span id="gcp-i-inner">{message}</span>
     const action_text = "PERFORM"
     const actionFunction = () => {
-      if (!(this.props.selected_piece && this.state.selected_roll)) {
+      if (!(ready_to_perform && has_valid_actions)) {
         return
       }
-      const {color, id} = this.props.selected_piece
-      const roll = this.state.selected_roll[2]
-      const valid_actions = positioning.getValidActions(
-        this.props.pieces, color, id, roll, this.props.rules
-      )
-      if (valid_actions.length === 0) {
-        return
-      }
+      const valid_actions = this._getValidActions()
       console.assert(valid_actions.length === 1)
       const {action} = valid_actions[0]
       this.props.sendAction(action)
+      // deselect the roll that we just sent
+      this.setState({selected_roll: null})
     }
-    return {instruction, action_text, actionFunction}
+    return {
+      instruction, action_text, actionFunction,
+      disabled_action: !(ready_to_perform && has_valid_actions),
+    }
+  }
+
+  _hasValidActions() {
+    if (!this.props.selected_piece || !this.state.selected_roll) {
+      return false
+    }
+    return this._getValidActions().length > 0
+  }
+
+  _getValidActions() {
+    const {color, id} = this.props.selected_piece
+    const roll = this.state.selected_roll[2]
+    return positioning.getValidActions(
+      this.props.pieces, color, id, roll, this.props.rules
+    )
   }
 
   _getActioningDoneWithTurn() {
@@ -250,7 +278,7 @@ function GameControlPaneView(props) {
   // PLAYERS INDICATOR: nothing to do here
 
   // INSTRUCTIONS & ACTION
-  const {instruction, actionFunction, action_text} = props
+  const {instruction, actionFunction, action_text, disabled_action} = props
 
   // ROLLS
   // TODO: create a component for this
@@ -287,7 +315,7 @@ function GameControlPaneView(props) {
         {!props.is_my_turn ? null :(<>
           <div
             id="gcp-action"
-            className="gcp-component"
+            className={`gcp-component${disabled_action ? " disabled" : ""}`}
             onClick={actionFunction}
             style={{lineHeight: props.height + "px"}}>
             {action_text}

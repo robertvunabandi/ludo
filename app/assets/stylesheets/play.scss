@@ -104,6 +104,11 @@
       #gcp-action {
         @include no-select;
       }
+      #gcp-action.disabled {
+        @include no-select;
+        background-color: $c-black-03 !important;
+        color: #444 !important;
+      }
       #gcp-action:hover {
         cursor: pointer;
         background-color: $c-black-01;
