@@ -262,7 +262,9 @@ P.newPositionValidWithRules = function newPositionValidWithRules(
   return true
 }
 
-P.handleCapturesFromPiece = function handleCapturesFromPiece(piece, pieces, rules) {
+P.handleCapturesFromPiece = function handleCapturesFromPiece(
+  piece, pieces, rules
+) {
   const pieces_at_location = P.piecesAtLocation(pieces, piece.location())
   const other_pieces = pieces_at_location.filter(p => !piece.sameColor(p))
   if (other_pieces.length === 0) {
@@ -270,11 +272,11 @@ P.handleCapturesFromPiece = function handleCapturesFromPiece(piece, pieces, rule
   }
 
   // capture the other pieces, put the updated into outcomes
-  const doesnt_capture_into_prison = H.capturesIntoPrison(rules)
+  const captures_into_prison = H.capturesIntoPrison(rules)
   const outcomes = []
   other_pieces.forEach(p => {
-    let np = p.makeCaptured()
-    if (doesnt_capture_into_prison) {
+    let np = p.makeCaptured(piece.color)
+    if (!captures_into_prison) {
       np = np.makeReleased()
     }
     outcomes.push(np)
@@ -291,7 +293,7 @@ P.piecesAtLocation = function piecesAtLocation(pieces, location) {
       if (!piece.isOut()) {
         return
       }
-      const ploc = piece.location
+      const ploc = piece.location()
       if (ploc.track === track && ploc.position === position) {
         pieces_at_location.push(piece)
       }
