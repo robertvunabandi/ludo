@@ -7,6 +7,8 @@ import PT from "utils/prop_types"
 
 import Dice from "components/Dice"
 
+const sortByInvertedPoints = H.keySorter("points", true)
+
 
 export default class GCPPlayerIndicators extends React.Component {
   static propTypes = {
@@ -62,11 +64,23 @@ function GCPPlayerIndicatorsView(props) {
 function getOrderFromHistory(players, history) {
   const player_ids = players.map(p => ({id: p.participant_id, points: -1}))
   const relevant = history.slice(0, players.length)
+
+  // temporary fix. Sometimes we're in intermediate states,and
+  // in those the history isn't updated yet. That results in
+  // the relevant history not having enough to do the sorting,
+  // which prevents updates down the chain and prevents
+  // reaching a state of correct history. So, if this next
+  // condition passes, we certainly will be waiting for an
+  // update to fix it.
+  if (relevant.length < players.length) {
+    return players.map(p => p.participant_id)
+  }
+
   player_ids.forEach((p, i) => {
     const rolls = relevant[i].rolls[0].rolls
     p.points = H.sum(rolls)
   })
-  player_ids.sort(H.keySorter("points"))
+  player_ids.sort(sortByInvertedPoints)
   return player_ids.map(p => p.id)
 }
 
