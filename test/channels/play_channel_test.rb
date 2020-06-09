@@ -101,4 +101,19 @@ class PlayChannelTest < ActionCable::Channel::TestCase
     assert_equal e_value, unaccounted_rolls.sort
   end
 
+  test "PlayChannel#get_unaccounted_rolls raises exception (1)" do
+    assert_raise(Exception) {
+      unaccounted_rolls = PlayChannel.get_unaccounted_rolls(
+        [1, 2, 2], [4, 5, 6]
+      )
+    }
+  end
+
+  test "PlayChannel#get_unaccounted_rolls raises exception (2)" do
+    assert_raise(Exception) {
+      unaccounted_rolls = PlayChannel.get_unaccounted_rolls(
+        [1, 2, 2], [1, 2, 3]
+      )
+    }
+  end
 end
