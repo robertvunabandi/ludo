@@ -6,12 +6,14 @@ const H = {
   sum(array) {
     return reduce(array, (sum, num) => sum + num, 0)
   },
-  keySorter(key) {
+  keySorter(key, invert=false) {
     return function sorter(o1, o2) {
       if (o1[key] === o2[key]) {
         return 0
       }
-      return o1[key] < o2[key] ? -1 : 1
+      const negative = invert ? 1 : -1
+      const positive = invert ? -1 : 1
+      return o1[key] < o2[key] ? negative : positive
     }
   },
   allowsSquareDoubling(rules) {
