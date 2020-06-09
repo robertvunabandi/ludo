@@ -85,9 +85,7 @@ P.updatePiecesPositionsOnAction = function updatePiecesPositionsOnAction(
     throw new {errors: action_outcome.erros}
   }
   for (const piece of action_outcome.outcomes) {
-    color = piece.color
-    piece_id = outcome_piece.id
-    pieces[color][piece_id] = piece
+    pieces[piece.color][piece.id] = piece
   }
   return
 }
@@ -110,6 +108,9 @@ P.getValidActions = function getValidActions(
   const outcomes = []
   for (const action_name of MOVE_ACTIONS) {
     const action = {action: action_name, roll, piece: piece_id}
+
+    if (action.action === C.action.MOVE && piece_id < 3) {
+    }
     const current_outcome = P.getActionOutcome(pieces, color, action, rules)
     if (current_outcome.errors && current_outcome.errors.length > 0) {
       continue
@@ -159,8 +160,13 @@ P.getActionOutcome = function getActionOutcome(
       const strict_at_graduation = H.strictAtGraduation(rules)
       const roll_six_to_graduate = H.mustRollSixToGraduate(rules)
 
-      if (strict_at_graduation && piece.isAboutToEnterGraduationLane() && action.roll === 1) {
-        piece = pice.forward(1)
+      if (strict_at_graduation && piece.isAboutToEnterGraduationLane()) {
+        if (action.roll !== 1) {
+          return {errors: [
+            "because it's strict at graduation, piece must roll a 1 to enter"
+          ]}
+        }
+        piece = piece.forward(1)
         if (!P.newPositionValidWithRules(piece, pieces, rules)) {
           return {errors: [INVALID_WITH_RULES]}
         }
@@ -208,9 +214,9 @@ P.getActionOutcome = function getActionOutcome(
       try {
         piece = piece.forward(action.roll, should_stop_at_grad_entry)
       } catch (e) {
-        // CANCEL
         // due to overflowing into graduation or other grad lane issues
-        return {errors: ["invalid moves makes piece exceed graduation entrnace"]}
+        throw e
+        return {errors: ["invalid moves makes piece exceed graduation entrance"]}
       }
 
       if (!P.newPositionValidWithRules(piece, pieces, rules)) {
@@ -218,7 +224,7 @@ P.getActionOutcome = function getActionOutcome(
       }
       const outcomes = [piece]
       if (!piece.isGraduating()) {
-        oucomes.push(...P.handleCapturesFromPiece(piece, pieces, rules))
+        outcomes.push(...P.handleCapturesFromPiece(piece, pieces, rules))
       }
       return {action, outcomes}
     // ========================================================================
