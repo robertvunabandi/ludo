@@ -1,3 +1,10 @@
+def dprint(mark, el, wrap="")
+  puts mark
+  puts "#{wrap} #{el} #{wrap}"
+  puts mark
+end
+
+
 class PlayChannel < ApplicationCable::Channel
   # events that we expect to see for PLAY
   E_APPEAR = "appear"
@@ -30,7 +37,6 @@ class PlayChannel < ApplicationCable::Channel
     @rules = get_rules
     @players = @game.players.order(:created_at)
     @turn_outcome_determined = false
-    @players_in_turn_order = @players.collect{ |p| p.participant_id}
 
     broadcast_rules_info(E_START)
 
@@ -263,9 +269,10 @@ class PlayChannel < ApplicationCable::Channel
     )
   end
 
-  def set_players_in_turn_order
+  # TODO: figure out how I can memoize this function!
+  def get_players_in_turn_order
     # order the players from largest rolls sum to smallest rolls sum
-    old_order = @players_in_turn_order
+    old_order = @players.collect{ |p| p.participant_id}
     turns = @game.turns.order(:turn).first(@players.count)
     # there should be only one roll for each players because of
     # turn order determination
@@ -276,7 +283,7 @@ class PlayChannel < ApplicationCable::Channel
       mapping[old_order[i]] = outcomes[i].inject(0){ |sum, roll| sum - roll }
     end
 
-    @players_in_turn_order = old_order.sort_by { |p| mapping[p] }
+    return old_order.sort_by { |p| mapping[p] }
   end
 
   def broadcast_turn_history(event, turn)
@@ -296,8 +303,10 @@ class PlayChannel < ApplicationCable::Channel
 
   def get_turn_info(turn)
     is_turn_order_determination = turn.turn < @game.players.count
-    if !is_turn_order_determination && !@turn_outcome_determined
-      set_players_in_turn_order
+    if is_turn_order_determination
+      players_in_turn_order = @players.collect{ |p| p.participant_id}
+    else
+      players_in_turn_order = get_players_in_turn_order
     end
 
     is_rolling, num_rolls = is_rolling?(turn, is_turn_order_determination)
@@ -305,8 +314,8 @@ class PlayChannel < ApplicationCable::Channel
       turn, is_rolling, is_turn_order_determination
     )
 
-    num_players = @players_in_turn_order.length()
-    turn_participant_id = @players_in_turn_order[turn.turn % num_players]
+    num_players = players_in_turn_order.length()
+    turn_participant_id = players_in_turn_order[turn.turn % num_players]
 
     return {
       turn: turn.turn,
