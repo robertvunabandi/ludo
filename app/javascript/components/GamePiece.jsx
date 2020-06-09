@@ -104,8 +104,10 @@ function pieceLocation(piece, side_length) {
     const x_base = (house_side_length / 2) - x_from_house_center
     const y_base = (house_side_length / 2) - y_from_house_center
 
-    const x_house_push = C.RIGHT_HOUSE_COLORS.includes(piece.color) ? house_push : 0
-    const y_house_push = C.BOTTOM_HOUSE_COLORS.includes(piece.color) ? house_push : 0
+    const is_right = C.RIGHT_HOUSE_COLORS.includes(piece.capturerColor())
+    const x_house_push = is_right ? house_push : 0
+    const is_bottom = C.BOTTOM_HOUSE_COLORS.includes(piece.capturerColor())
+    const y_house_push = is_bottom ? house_push : 0
     return [x_base + x_house_push, y_base + y_house_push, piece_radius]
   }
 
@@ -188,13 +190,13 @@ function pieceLocation(piece, side_length) {
         piece_radius
       ]
     case C.color.GREEN:
-      x_house_push = 0
+      x_house_push = house_push
       y_house_push = house_side_length
       position = locationOutResolver(location.position, C.color.GREEN)
       x_push = position * square_width
       y_push = 0
       y_special_push_1 = location.position === 6 ? square_width : 0
-      y_special_push_2 = location.position < 6 ? square_width * 2 : 0
+      y_special_push_2 = location.position > 6 ? square_width * 2 : 0
       return [
         x_base + x_house_push + x_push,
         y_base + y_house_push + y_push + y_special_push_1 + y_special_push_2,
@@ -214,13 +216,13 @@ function pieceLocation(piece, side_length) {
         piece_radius
       ]
     case C.color.BLUE:
-      x_house_push = house_push
+      x_house_push = 0
       y_house_push = house_side_length
       position = locationOutResolver(location.position, C.color.BLUE)
       x_push = position * square_width
       y_push = 0
       y_special_push_1 = location.position === 6 ? square_width : 0
-      y_special_push_2 = location.position > 6 ? square_width * 2 : 0
+      y_special_push_2 = location.position < 6 ? square_width * 2 : 0
       return [
         x_base + x_house_push + x_push,
         y_base + y_house_push + y_push + y_special_push_1 + y_special_push_2,
