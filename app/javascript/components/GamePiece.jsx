@@ -170,6 +170,7 @@ function pieceLocation(piece, side_length) {
 
   // now the piece is out and it's not graduating
   let x_special_push_1, x_special_push_2, y_special_push_1, y_special_push_2
+  let position
   x_base = square_width / 2
   y_base = square_width / 2
   switch(location.track) {
@@ -182,7 +183,7 @@ function pieceLocation(piece, side_length) {
       x_special_push_1 = location.position === 6 ? square_width : 0
       x_special_push_2 = location.position > 6 ? square_width * 2 : 0
       return [
-        x_base + x_house_push + x_push + x_special_push_1 + x_psecial_push_2,
+        x_base + x_house_push + x_push + x_special_push_1 + x_special_push_2,
         y_base + y_house_push + y_push,
         piece_radius
       ]
@@ -208,7 +209,7 @@ function pieceLocation(piece, side_length) {
       x_special_push_1 = location.position === 6 ? square_width : 0
       x_special_push_2 = location.position < 6 ? square_width * 2 : 0
       return [
-        x_base + x_house_push + x_push + x_special_push_1 + x_psecial_push_2,
+        x_base + x_house_push + x_push + x_special_push_1 + x_special_push_2,
         y_base + y_house_push + y_push,
         piece_radius
       ]
