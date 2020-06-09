@@ -163,10 +163,20 @@ export default class PieceState {
       return new_piece
     }
 
-    if (this._location.track === this._color) {
+    // TODO: this is bad design... but the case where isAboutToGraduate
+    // is handled in positioning. I should move it here because it
+    // doesn't really make sense that in this code it's assuming that
+    // that case is handled (when it could not by another implementer)
+    if (this.isAboutToEnterGraduationLane() && stop_at_Graduation_entrance) {
+      // TODO: handle that here?
+    }
+
+    const was_before_graduate = this._location.position < KEY_POSITION.GRADUATE
+    if (this._location.track === this._color && was_before_graduate) {
       let maybe_grad_track = this._location.track
       let maybe_grad_position = new_position
-      if (new_count > KEY_POSITION.GRADUATE) {
+
+      if (maybe_grad_position > KEY_POSITION.GRADUATE) {
         if (stop_at_graduation_entrance) {
           throw new Error("The new position would exceed the graduation")
         }
@@ -192,9 +202,17 @@ export default class PieceState {
   static _nextLocation(color, position) {
     let new_color = color
     let new_position = position
-    while (position > KEY_POSITION.LAST) {
+    let was_old_color = false
+    while (new_position > KEY_POSITION.LAST) {
       new_color = PieceState._nextTrackColor(new_color)
       new_position = new_position - (KEY_POSITION.LAST + 1)
+      if (new_color === color) {
+        was_old_color = true
+        continue
+      }
+      if (was_old_color) {
+        throw new Error("We looped back, this is impossible")
+      }
     }
     return {track: new_color, position: new_position}
   }
