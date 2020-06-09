@@ -47,6 +47,6 @@ C.graduation_direction = {
   [C.color.BLUE]: C.direction.RIGHT,
 }
 
-C.ACTIONS = Object.values([C.action])
+C.ACTIONS = Object.values(C.action)
 
 export default C
