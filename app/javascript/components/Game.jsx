@@ -361,6 +361,11 @@ export default class Game extends React.Component {
   }
 
   handlePieceClick(color, piece_id) {
+    const my_color = H.playerWithId(this.props.players, this.props.my_id).color
+    // can't select other piece's colors
+    if (color !== my_color) {
+      return
+    }
     this.setState((state, props) => {
       if (!state.selected_piece) {
         return {selected_piece: {color, id: piece_id}}
