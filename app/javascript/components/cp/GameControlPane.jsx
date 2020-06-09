@@ -154,7 +154,7 @@ export default class GameControlPane extends React.Component {
     const rolling_again = GameControlPane._rollingAgain(turn)
     const instruction = (
       <span id="gcp-i-inner">
-        It's your turn.
+        It's your turn.{" "}
         {rolling_again ? "You rolled a six! " : ""}
         Time to roll {rolling_again ? "again" : ""}!
       </span>
@@ -328,7 +328,8 @@ function getMyRolls(history, turn, selected_roll) {
   // we have already used, but we don't want to mark duplicates twice
   // so, the isRollUsed will check against a list of rolls that are
   // used and remove from there.
-  const used_rolls = !!turn.actions ? turn.actions.map(a => a.roll) : []
+  const actions = history[turn].actions
+  const used_rolls = !!actions ? actions.map(a => a.roll) : []
 
   rolls.forEach(rs => {
     rs.rolls.forEach((r, i) => {
