@@ -35,6 +35,17 @@ const H = {
   mustRollSixToGraduate(rules) {
     return rules["roll_six_to_graduate"]
   },
+  playerWithId(players, participant_id) {
+    if (!players) {
+      return {}
+    }
+    for (const player of players) {
+      if (player.participant_id === participant_id) {
+        return player
+      }
+    }
+    return {}
+  },
 }
 
 

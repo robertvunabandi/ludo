@@ -98,7 +98,7 @@ export default class GameControlPane extends React.Component {
   }
 
   _getActioningNotMyTurn() {
-    const turn_player = playerWithId(
+    const turn_player = H.playerWithId(
       this.props.players, this.props.turn_participant_id
     )
     const instruction = (
@@ -175,7 +175,7 @@ export default class GameControlPane extends React.Component {
   }
 
   _getActioningAction() {
-    const my_color = playerWithId(this.props.players, this.props.my_id).color
+    const my_color = H.playerWithId(this.props.players, this.props.my_id).color
     const can_still_perform_actions = positioning.hasPossibleMoves(
       this.props.pieces, my_color, this.props.remaining_rolls, this.props.rules
     )
@@ -255,7 +255,7 @@ function GameControlPaneView(props) {
   // ROLLS
   // TODO: create a component for this
   const gcp_dice_width = props.height / 3.2
-  const my_color = playerWithId(props.players, props.my_id).color
+  const my_color = H.playerWithId(props.players, props.my_id).color
   const my_rolls = getMyRolls(props.history, props.turn, props.selected_roll)
   const gcp_rolls = my_rolls.filter(r => !r.used).map((r, i) => (
     <Dice
@@ -299,18 +299,6 @@ function GameControlPaneView(props) {
       </div>
     </div>
   )
-}
-
-function playerWithId(players, participant_id) {
-  if (!players) {
-    return {}
-  }
-  for (const player of players) {
-    if (player.participant_id === participant_id) {
-      return player
-    }
-  }
-  return {}
 }
 
 function getMyRolls(history, turn, selected_roll) {
