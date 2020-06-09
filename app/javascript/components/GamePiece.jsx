@@ -190,7 +190,7 @@ function pieceLocation(piece, side_length) {
     case C.color.GREEN:
       x_house_push = 0
       y_house_push = house_side_length
-      position = locationOutResolver(location.position, C.color.BLUE)
+      position = locationOutResolver(location.position, C.color.GREEN)
       x_push = position * square_width
       y_push = 0
       y_special_push_1 = location.position === 6 ? square_width : 0
@@ -203,7 +203,7 @@ function pieceLocation(piece, side_length) {
     case C.color.YELLOW:
       x_house_push = house_side_length
       y_house_push = house_push
-      position = locationOutResolver(location.position, C.color.RED)
+      position = locationOutResolver(location.position, C.color.YELLOW)
       x_push = 0
       y_push = position * square_width
       x_special_push_1 = location.position === 6 ? square_width : 0
