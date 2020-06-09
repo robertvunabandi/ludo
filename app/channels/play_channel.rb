@@ -67,13 +67,13 @@ class PlayChannel < ApplicationCable::Channel
     turn_pid = turn_info[:turn_participant_id]
 
     if (participant_id != turn_pid)
-      puts "#{participant_id} tried rolling but turn's not their turn"
+      puts "#{participant_id} tried `roll` but it's not their turn"
       return
     end
 
     is_rolling = turn_info[:is_rolling]
     if !is_rolling
-      puts "#{participant_id} tried rolling but is_rolling=false"
+      puts "#{participant_id} tried `roll` but is_rolling=false"
       return
     end
 
@@ -95,17 +95,35 @@ class PlayChannel < ApplicationCable::Channel
 
   def action(data)
     participant_id = data["participant_id"]
-    action = data["action"]
-    piece = data["piece"]
-    roll = data["roll"]
 
     current_turn = Turn.current_turn(@game)
     turn = Turn.find_by(game: @game, turn: current_turn)
+    turn_info = get_turn_info(turn)
+    turn_pid = turn_info[:turn_participant_id]
 
-    # TODO: validate the participant that sent the action
-    # TODO: create the action
-    # TODO: broadcast the turn info through history
-    return
+    if (participant_id != turn_pid)
+      puts "#{participant_id} tried `action` but it's not their turn"
+      return
+    end
+
+    is_moving = turn_info[:is_moving]
+    if !is_moving
+      puts "#{participant_id} tried `action` but is_moving=false"
+      return
+    end
+
+    action = Action.create(
+      turn: turn,
+      action: Action.for(data["action_name"]),
+      piece: data["piece"],
+      roll: data["roll"],
+    )
+    if !action.valid?
+      puts "ERROR - action is invalid (#{action})"
+      puts "ERRORS: #{action.errors.messages}"
+      return
+    end
+
     broadcast_turn_history(E_HISTORY, turn)
     broadcast_turn_info(E_TURN_INFO, turn)
   end
@@ -130,8 +148,12 @@ class PlayChannel < ApplicationCable::Channel
     end
     is_moving = turn_info[:is_moving]
     if is_moving
-      puts "#{participant_id} tried finishing turn but is_moving=true"
-      return
+      # use NULL actions for the remaining rolls
+      for roll in turn_info[:remaining_rolls]
+        action = Action.create(
+          turn: turn, action: Action.for(Action::A_NULL), piece: 1, roll: roll
+        )
+      end
     end
 
     next_turn = Turn.create_next_turn(@game)
@@ -199,7 +221,14 @@ class PlayChannel < ApplicationCable::Channel
       # reach the last element of action_rolls. So, that case will
       # be handled in the condition above. this is because of the
       # subset precondition above
-      raise "INVALID SITUATION" unless j < actual_rolls.length
+      exception_text = (
+        "----\n" \
+        "INVALID SITUATION [action:#{action_rolls}, " \
+        ", actual:#{actual_rolls}] \n (j:#{j} < "     \
+        "actual_rolls.length:#{actual_rolls.length})" \
+        "\n----"
+      )
+      raise exception_text unless j < actual_rolls.length
 
       # if they match at i and j, then the value at j is accounted for
       if action_rolls[i] == actual_rolls[j]
@@ -256,8 +285,10 @@ class PlayChannel < ApplicationCable::Channel
         .collect{ |r| {roll_id: r.id, rolls: Roll.rolls_from_hint(r.roll_hint)} }
     )
     actions = turn.actions.count == 0 ? [] : (
-      turn.actions.order(:created_at)
-        .collect{ |a| {action_id: a.id, action: a.action, piece: a.piece, roll: a.roll} })
+      turn.actions.order(:id)
+        .collect{ |a| {
+          action_id: a.id, action: a.action_name, piece: a.piece, roll: a.roll
+        } })
     ActionCable.server.broadcast(
       @channel, event: event, turn: turn.turn, rolls: rolls, actions: actions
     )

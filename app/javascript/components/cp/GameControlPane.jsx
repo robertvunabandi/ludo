@@ -63,7 +63,7 @@ export default class GameControlPane extends React.Component {
     super(props)
 
     this.state = {
-      // an array of the form [roll_id, index]
+      // an array of the form [roll_id, index, roll]
       selected_roll: null,
     }
 
@@ -94,29 +94,7 @@ export default class GameControlPane extends React.Component {
     }
 
 
-    const my_color = playerWithId(this.props.players, this.props.my_id).color
-    const can_still_perform_actions = positioning.hasPossibleMoves(
-      this.props.pieces, my_color, this.props.remaining_rolls, this.props.rules
-    )
-    if (!can_still_perform_actions) {
-      // TODO: we still have to send STOP actions
-      console.log("NO POSSIBLE MOVES!!! DIDN'T SENT NULL ACTIONS")
-      return this._getActioningDoneWithTurn()
-    }
-
-    const instruction = (
-      <span id="gcp-i-inner">
-        It's your turn. Now, select a roll, then select a piece, to perform
-        an action with it. There is at most one possible action per piece per
-        roll.
-      </span>
-    )
-    const action_text = "PERFORM"
-    // TODO: implement this function
-    const actionFunction = () => console.log(
-      "Action", this.props.selected_piece, this.state.selected_roll
-    )
-    return {instruction, action_text, actionFunction}
+    return this._getActioningAction()
   }
 
   _getActioningNotMyTurn() {
@@ -196,6 +174,44 @@ export default class GameControlPane extends React.Component {
     return H.flatten(turn.rolls.map(r => r.rolls)).includes(6)
   }
 
+  _getActioningAction() {
+    const my_color = playerWithId(this.props.players, this.props.my_id).color
+    const can_still_perform_actions = positioning.hasPossibleMoves(
+      this.props.pieces, my_color, this.props.remaining_rolls, this.props.rules
+    )
+    if (!can_still_perform_actions) {
+      // if there are still rolls, clicking on OK will clear them
+      // out in the server
+      return this._getActioningDoneWithTurn()
+    }
+
+    const instruction = (
+      <span id="gcp-i-inner">
+        It's your turn. Select a roll, then select a piece, then perform
+        an action with it. There is at most one possible action per piece
+        and per roll.
+      </span>
+    )
+    const action_text = "PERFORM"
+    const actionFunction = () => {
+      if (!(this.props.selected_piece && this.state.selected_roll)) {
+        return
+      }
+      const {color, id} = this.props.selected_piece
+      const roll = this.state.selected_roll[2]
+      const valid_actions = positioning.getValidActions(
+        this.props.pieces, color, id, roll, this.props.rules
+      )
+      if (valid_actions.length === 0) {
+        return
+      }
+      console.assert(valid_actions.length === 1)
+      const {action} = valid_actions[0]
+      this.props.sendAction(action)
+    }
+    return {instruction, action_text, actionFunction}
+  }
+
   _getActioningDoneWithTurn() {
     const instruction = (
       <span id="gcp-i-inner">
@@ -237,13 +253,14 @@ function GameControlPaneView(props) {
   const {instruction, actionFunction, action_text} = props
 
   // ROLLS
-  const gcp_dice_width = props.height / 2.6
+  // TODO: create a component for this
+  const gcp_dice_width = props.height / 3.2
   const my_color = playerWithId(props.players, props.my_id).color
   const my_rolls = getMyRolls(props.history, props.turn, props.selected_roll)
   const gcp_rolls = my_rolls.filter(r => !r.used).map((r, i) => (
     <Dice
       key={i}
-      width={props.height / 2.6}
+      width={gcp_dice_width}
       value={r.roll}
       accent_color={my_color}
       roll_id={[r.id, r.index, r.roll]}
