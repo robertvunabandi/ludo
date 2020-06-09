@@ -71,7 +71,9 @@ function getOrderFromHistory(players, history) {
 }
 
 function getRelevantHistory(history, round, num_players) {
-  return history.slice(round * num_players, round * (num_players + 1))
+  const start = num_players * round
+  const end = num_players * (round + 1)
+  return history.slice(start, end)
 }
 
 function PlayerIndicator(props) {
