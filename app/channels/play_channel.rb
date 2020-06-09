@@ -160,6 +160,8 @@ class PlayChannel < ApplicationCable::Channel
           turn: turn, action: Action.for(Action::A_NULL), piece: 1, roll: roll
         )
       end
+      # broadcast all the NULL actions that just have been done
+      broadcast_turn_history(E_HISTORY, turn)
     end
 
     next_turn = Turn.create_next_turn(@game)
