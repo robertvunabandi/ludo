@@ -19,10 +19,10 @@ export default class GCPRoundAndRules extends React.Component {
 function GCPRoundAndRulesView(props) {
   return (
     <div id="gcp-round-and-rules" className="gcp-component">
-      <div style={{fontSize: (props.height * 0.30) + 'px'}}>
+      <div style={{fontSize: (props.height * 0.20) + 'px'}}>
         <div>ROUND {props.round}</div>
       </div>
-      <div style={{fontSize: (props.height * 0.25) + 'px'}}>
+      <div style={{fontSize: (props.height * 0.17) + 'px'}}>
         <span className="btn" onClick={props.viewRules}>view rules</span>
       </div>
     </div>
