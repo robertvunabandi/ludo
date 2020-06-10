@@ -177,7 +177,7 @@ P.getActionOutcome = function getActionOutcome(
       if (piece.isGraduating()) {
         if (previous_loc.position === 6 && action.roll === 6) {
           console.assert(roll_six_to_graduate)
-          return {action, outcomes: [piece.make_graduated()]}
+          return {action, outcomes: [piece.makeGraduated()]}
         }
 
         if (strict_at_graduation) {
