@@ -147,6 +147,7 @@ GEM
     rb-fsevent (0.10.4)
     rb-inotify (0.10.1)
       ffi (~> 1.0)
+    redis (4.2.0)
     regexp_parser (1.7.0)
     ruby-progressbar (1.10.1)
     rubyzip (2.3.0)
@@ -220,6 +221,7 @@ DEPENDENCIES
   pg (>= 0.18, < 2.0)
   puma (>= 4.3.5)
   rails (~> 6.0.3)
+  redis
   sass-rails (>= 6)
   selenium-webdriver
   spring
