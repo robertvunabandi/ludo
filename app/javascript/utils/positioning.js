@@ -216,7 +216,6 @@ P.getActionOutcome = function getActionOutcome(
         piece = piece.forward(action.roll, should_stop_at_grad_entry)
       } catch (e) {
         // due to overflowing into graduation or other grad lane issues
-        throw e
         return {errors: ["invalid moves makes piece exceed graduation entrance"]}
       }
 

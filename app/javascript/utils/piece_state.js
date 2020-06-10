@@ -186,7 +186,9 @@ export default class PieceState {
 
       if (maybe_grad_position > KEY_POSITION.GRADUATE) {
         if (stop_at_graduation_entrance) {
-          throw new Error("The new position would exceed the graduation")
+          throw new Error(
+            "The new position would exceed the graduation lane entry"
+          )
         }
         maybe_grad_track = GRAD_TRACK
         maybe_grad_position = new_position - KEY_POSITION.GRADUATE
