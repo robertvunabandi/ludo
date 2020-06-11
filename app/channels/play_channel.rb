@@ -45,7 +45,9 @@ class PlayChannel < ApplicationCable::Channel
 
   def unsubscribed
     # Any cleanup needed when channel is unsubscribed
-    puts "LEAVING: unsubscribed #{participant.id} from #{@channel}"
+    ActionCable.server.broadcast(
+      @channel, event: E_DISAPPEAR, participant_id: participant.id
+    )
   end
 
   # DEFINED ACTIONS
@@ -57,12 +59,6 @@ class PlayChannel < ApplicationCable::Channel
   def appear
     ActionCable.server.broadcast(
       @channel, event: E_APPEAR, participant_id: participant.id
-    )
-  end
-
-  def leave
-    ActionCable.server.broadcast(
-      @channel, event: E_DISAPPEAR, participant_id: participant.id
     )
   end
 

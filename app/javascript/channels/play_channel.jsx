@@ -18,7 +18,6 @@ Socket.Respond = {
 Socket.Perform = {
   START: "start",
   APPEAR: "appear",
-  DISAPPEAR: "disappear",
   ACTION: "action",
   ROLL: "roll",
   FINISH_TURN: "finish_turn",
