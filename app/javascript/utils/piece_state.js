@@ -179,7 +179,7 @@ export default class PieceState {
       return new_piece
     }
 
-    const was_before_graduate = this._location.position < KEY_POSITION.GRADUATE
+    const was_before_graduate = this._location.position <= KEY_POSITION.GRADUATE
     if (this._location.track === this._color && was_before_graduate) {
       let maybe_grad_track = this._location.track
       let maybe_grad_position = new_position
