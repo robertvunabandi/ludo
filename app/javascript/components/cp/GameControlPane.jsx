@@ -94,7 +94,6 @@ export default class GameControlPane extends React.Component {
       return this._getActioningRolling()
     }
 
-
     return this._getActioningAction()
   }
 
@@ -268,10 +267,12 @@ export default class GameControlPane extends React.Component {
 
 function GameControlPaneView(props) {
   // OVERALL
-  const heightStyle = {height: props.height, maxHeight: props.height}
-  const widthStyle = {
-    width: props.side_length, maxWidth: props.side_length, ...heightStyle
-  }
+  const denominator = props.is_my_turn ? 6.5 : 5
+  const height_style = {height: props.height, maxHeight: props.height}
+  const width_style = {width: props.side_length, maxWidth: props.side_length}
+  // INNER
+  const inner_height = props.height * 4/denominator
+  const inner_height_style = {height: inner_height, maxHeight: inner_height}
 
   // ROUNDS
   const round = Math.floor(props.turn / props.players.length)
@@ -282,14 +283,15 @@ function GameControlPaneView(props) {
   const {instruction, actionFunction, action_text, disabled_action} = props
 
   // ROLLS
-  // TODO: create a component for this
-  const gcp_dice_width = props.height / 3.2
+  const rolls_height = props.height * 1.5 / denominator
+  const rolls_height_style = {height: rolls_height, maxHeight: rolls_height}
+  const dice_width = rolls_height * 0.99
   const my_color = H.playerWithId(props.players, props.my_id).color
   const my_rolls = getMyRolls(props.history, props.turn, props.selected_roll)
   const gcp_rolls = my_rolls.filter(r => !r.used).map((r, i) => (
     <Dice
       key={i}
-      width={gcp_dice_width}
+      width={dice_width}
       value={r.roll}
       accent_color={my_color}
       roll_id={[r.id, r.index, r.roll]}
@@ -298,15 +300,18 @@ function GameControlPaneView(props) {
   ))
 
   return (
-    <div id="game-control-pane" style={heightStyle}>
-      <div id="gcp-inner" style={widthStyle}>
-        <GCPRoundAndRules
-          height={props.height}
-          round={round}
-          viewRules={props.viewRules} />
+    <div id="game-control-pane" style={height_style}>
+      <GCPRoundAndRules
+        height={props.height / denominator}
+        width={props.side_length}
+        style={{...width_style}}
+        round={round}
+        viewRules={props.viewRules} />
+
+      <div id="gcp-inner" style={{...width_style, ...inner_height_style}}>
         <GCPPlayerIndicators
           is_turn_order_determination={props.is_turn_order_determination}
-          height={props.height}
+          height={inner_height}
           players={props.players}
           history={props.history}
           round={round} />
@@ -314,18 +319,26 @@ function GameControlPaneView(props) {
           {props.instruction}
         </div>
         {!props.is_my_turn ? null :(<>
-          <div
-            id="gcp-action"
-            className={`gcp-component${disabled_action ? " disabled" : ""}`}
-            onClick={actionFunction}
-            style={{lineHeight: props.height + "px"}}>
-            {action_text}
-          </div>
-          <div id="gcd-rolls" className="gcp-component">
-            {gcp_rolls}
-          </div>
+        <div
+          id="gcp-action"
+          className={`gcp-component${disabled_action ? " disabled" : ""}`}
+          onClick={actionFunction}
+          style={{lineHeight: inner_height + "px"}}>
+          {action_text}
+        </div>
         </>)}
       </div>
+
+      {!props.is_my_turn ? null :(<>
+      <div
+        id="gcp-rolls"
+        className="gcp-component"
+        style={{...width_style, ...rolls_height_style}}>
+        <div style={{...rolls_height_style, lineHeight: rolls_height + "px"}}>
+          {gcp_rolls}
+        </div>
+      </div>
+      </>)}
     </div>
   )
 }

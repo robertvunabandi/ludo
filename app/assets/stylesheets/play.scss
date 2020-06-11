@@ -23,6 +23,59 @@
     margin: 0 auto;
     border-bottom: 1px solid black;
     margin-bottom: 1%;
+    background-color: beige;
+
+    .gcp-component {
+      background-color: white;
+    }
+
+    #gcp-round-and-rules {
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      border-bottom: 1px solid black;
+      margin: 0 auto;
+      position: relative;
+
+      display: flex;
+      flex-direction: row;
+      text-align: center;
+      div {
+        display: flex;
+        padding: 0.05rem;
+      }
+      div:first-child {
+        flex-grow: 1;
+        align-items: center;
+        display: flex;
+        margin-left: 0.15rem;
+      }
+      #view-rules-btn {
+        border-left: 1px solid black;
+        padding: 0 0.3rem;
+        display: inline-block;
+        background-color: $c-black-01;
+      }
+      #view-rules-btn:hover {
+        background-color: $c-black-02;
+      }
+      #view-rules-btn:active, #view-rules-btn:focus {
+        background-color: $c-black-03;
+      }
+    }
+
+    #gcp-rolls {
+      border-left: 1px solid black;
+      border-right: 1px solid black;
+      border-bottom: 1px solid black;
+      text-align: center;
+      display: block;
+      margin: 0 auto;
+      div {
+        display: inline-block;
+        border-bottom: 1px solid black;
+        white-space: nowrap;
+      }
+    }
 
     #gcp-inner {
       display: flex;
@@ -30,35 +83,13 @@
       justify-content: space-between;
       margin: 0 auto;
       border-left: 1px solid black;
+      border-bottom: 1px solid black;
       position: relative;
 
       .gcp-component {
         padding-left: 0.2rem;
         padding-right: 0.2rem;
         border-right: 1px solid black;
-      }
-      #gcp-round-and-rules {
-        display: flex;
-        flex-direction: column;
-        text-align: center;
-        div {
-          padding: 0.05rem;
-        }
-        div:first-child {
-          flex-grow: 1;
-          align-content: center;
-          position: relative;
-          div {
-            width: 100%;
-            text-align: center;
-            position: absolute;
-            top: 60%;
-            transform: translateY(-50%);
-          }
-        }
-        div:last-child .btn {
-          padding: 0 0.5rem 0.1rem 0.5rem;
-        }
       }
       #gcp-player-indicators {
         padding-left: 0;
@@ -117,7 +148,6 @@
         background-color: $c-black-02;
       }
 
-      #gcp-rolls {}
     }
   }
 
