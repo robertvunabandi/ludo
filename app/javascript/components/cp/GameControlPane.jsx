@@ -73,6 +73,7 @@ export default class GameControlPane extends React.Component {
     this._getTurnDeterminationActioning = this._getTurnDeterminationActioning.bind(this)
     this._getActioningRolling = this._getActioningRolling.bind(this)
     this._getActioningDoneWithTurn = this._getActioningDoneWithTurn.bind(this)
+    this._getActioningAction = this._getActioningAction.bind(this)
     this._endTurn = this._endTurn.bind(this)
   }
 
