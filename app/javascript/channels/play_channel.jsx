@@ -102,11 +102,9 @@ Socket.socketSubscribe = function socketSubscribe() {
     switch (data.event) {
       case Socket.Respond.APPEAR:
         // TODO: handle appear if needed
-        console.log("appeared", data)
         break
       case Socket.Respond.DISAPPEAR:
         // TODO: handle disappear if needed
-        console.log("disappeared", data)
         break
       case Socket.Respond.START:
         if (!Socket.data.firstDisplayHappened) {
@@ -160,7 +158,7 @@ Socket.socketSubscribe = function socketSubscribe() {
       "roll_after_six",
       "allow_square_doubling",
       "capture_into_prison",
-      "roll_six_to_graduate"
+      "roll_six_to_graduate",
     ]
     boolean_keys.forEach((r) => {
       rules[r] = rules[r] === "yes"
