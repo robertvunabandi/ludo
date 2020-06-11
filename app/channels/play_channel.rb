@@ -38,8 +38,6 @@ class PlayChannel < ApplicationCable::Channel
     @players = @game.players.order(:created_at)
     @turn_outcome_determined = false
 
-    broadcast_rules_info(E_START)
-
     # create the zeroth turn
     current_turn = Turn.current_turn(@game)
     turn = Turn.find_or_create_by(game: @game, turn: current_turn)
@@ -51,6 +49,10 @@ class PlayChannel < ApplicationCable::Channel
   end
 
   # DEFINED ACTIONS
+
+  def start
+    broadcast_rules_info(E_START)
+  end
 
   def appear
     ActionCable.server.broadcast(

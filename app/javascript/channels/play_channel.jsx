@@ -16,6 +16,7 @@ Socket.Respond = {
   TURN_INFO: "turn_info",
 }
 Socket.Perform = {
+  START: "start",
   APPEAR: "appear",
   DISAPPEAR: "disappear",
   ACTION: "action",
@@ -56,8 +57,6 @@ Socket.socketSubscribe = function socketSubscribe() {
 
   // Called when the subscription is ready for use on the server
   options.connected = function connected() {
-    this.perform(Socket.Perform.APPEAR)
-
     const self = this
     const data_pid = {participant_id: Socket.data.myId}
     Socket.funcs.sendRolls = function sendRolls() {
@@ -85,6 +84,9 @@ Socket.socketSubscribe = function socketSubscribe() {
     Socket.funcs.requestTurnInfo = function requestTurnInfo() {
       self.perform(Socket.Perform.TURN_INFO_REQUEST)
     }
+
+    this.perform(Socket.Perform.START)
+    this.perform(Socket.Perform.APPEAR)
   }
 
   // Called when the subscription has been terminated by the server
@@ -101,23 +103,16 @@ Socket.socketSubscribe = function socketSubscribe() {
     switch (data.event) {
       case Socket.Respond.APPEAR:
         // TODO: handle appear if needed
+        console.log("appeared", data)
         break
       case Socket.Respond.DISAPPEAR:
         // TODO: handle disappear if needed
+        console.log("disappeared", data)
         break
       case Socket.Respond.START:
         if (!Socket.data.firstDisplayHappened) {
           Socket.data.firstDisplayHappened = true
-          const self = this
-          // TODO: in the future, do a count down. there is
-          // problem where the socket variables for functions
-          // don't get set up in time before the game is
-          // displayed. So, I make it wait. In the future we
-          // do a count down or loading screen. like, the
-          // event START arrives before the socket is done
-          // with its this.connected() function
-          setTimeout(() => self._displayGame(data), 10)
-          return
+          this._displayGame(data)
         }
         break
       case Socket.Respond.HISTORY:
