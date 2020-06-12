@@ -20,7 +20,8 @@ P.getPiecesPositionsFromHistory = function getPiecesPositionsFromHistory(
   // for each turn, move the pieces according to their
   // respective turns
   for (const turn of history) {
-    if (P.isTurnOrderDetermination(turn.turn, num_players)) {
+    if (turn.turn < num_players) {
+      // we're in turn order determination in this block
       turn_order_points[turn.turn] = H.sum(
         turn.rolls.map(roll => H.sum(roll.rolls))
       )
@@ -36,12 +37,6 @@ P.getPiecesPositionsFromHistory = function getPiecesPositionsFromHistory(
     }
   }
   return pieces
-}
-
-P.isTurnOrderDetermination = function isTurnOrderDetermination(
-  turn, num_players
-) {
-  return turn < num_players
 }
 
 P.getStartingPositions = function getStartingPositions(available_colors) {
