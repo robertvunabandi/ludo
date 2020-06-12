@@ -103,9 +103,6 @@ P.getValidActions = function getValidActions(
   const outcomes = []
   for (const action_name of MOVE_ACTIONS) {
     const action = {action: action_name, roll, piece: piece_id}
-
-    if (action.action === C.action.MOVE && piece_id < 3) {
-    }
     const current_outcome = P.getActionOutcome(pieces, color, action, rules)
     if (current_outcome.errors && current_outcome.errors.length > 0) {
       continue
@@ -118,6 +115,19 @@ P.getValidActions = function getValidActions(
 P.getActionOutcome = function getActionOutcome(
   pieces, color, action, rules
 ) {
+  // NOTE: This function has the nature of something that can use
+  // polymorphism instead of a switch/case block. We can create
+  // an Action interface that has the method
+  //   `getOutcomes(pieces, rules)`
+  // and then we can write, for each action type, a class that
+  // implements that interface. E.g., for BeginAction, MoveAction,
+  // NullAction, StopAction, etc. Finally, have a factory method
+  // on the interface that takes the action object, like:
+  //   `Action.make(action)`
+  // which returns one of those. Then, we can just use that result
+  // and here call
+  //   `return Action.make(action).getOutcomes(pieces, rules)`
+
   // the given color has just performed the given action.
   // now, we update the pieces accordingly
   let piece = pieces[color][action.piece]
@@ -301,11 +311,6 @@ P.overlapsWithOtherPieces = function overlapsWithOtherPieces(piece, pieces) {
   // assumes that piece is not in the set of pieces
   const pieces_at_location = P.piecesAtLocation(pieces, piece.location())
   return pieces_at_location.filter(p => piece.sameColor(p)).length > 0
-}
-
-P._piecesCollide = function _piecesCollide(piece1, piece2) {
-  return ([piece1, piece2].every(p => p.isOut()))
-    && H.isEqual(...([piece1, piece2].map(p => p.location())))
 }
 
 
