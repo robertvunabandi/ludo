@@ -1,16 +1,14 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 
+import PT from "utils/prop_types"
+
 import TextInput from 'components/TextInput'
 
 
 export default class ActivePlayers extends React.Component {
   static propTypes = {
-    players: PropTypes.arrayOf(PropTypes.shape({
-      participant_id: PropTypes.number.isRequired,
-      username: PropTypes.string.isRequired,
-      is_host: PropTypes.bool.isRequired,
-    })).isRequired,
+    players: PT.players.isRequired,
     Socket: PropTypes.object.isRequired,
   }
 

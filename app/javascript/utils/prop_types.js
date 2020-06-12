@@ -11,12 +11,20 @@ PT.action = PropTypes.oneOf(C.ACTIONS)
 PT.piece = PropTypes.oneOf([1, 2, 3, 4])
 PT.roll = PropTypes.oneOf([1, 2, 3, 4, 5, 6])
 
-PT.players = PropTypes.arrayOf(PropTypes.shape({
+PT.player = PropTypes.shape({
   color: PT.color.isRequired,
   is_host: PropTypes.bool.isRequired,
   participant_id: PropTypes.number.isRequired,
   username: PropTypes.string.isRequired,
-}))
+})
+// This is a mapping from player color to player
+// participant id. Red is always the host, and there will
+// always be two available because we need at least two
+// players to play the game. If there's only two, the
+// opponent will be yellow. If there's 3, the 3 colors in
+// play will be red, green, and yellow. This also
+// implicitly gives us the number of players.
+PT.players = PropTypes.arrayOf(PT.player)
 
 PT.history = PropTypes.arrayOf(PropTypes.shape({
   turn: PropTypes.number.isRequired,

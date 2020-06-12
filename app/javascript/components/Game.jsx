@@ -5,6 +5,7 @@ import C from "utils/constants"
 import H from "utils/helpers"
 import PT from "utils/prop_types"
 import positioning from "utils/positioning"
+
 import GameBoard from "components/GameBoard"
 import GameControlPane from "components/cp/GameControlPane"
 import GamePiece from "components/GamePiece"
@@ -20,19 +21,8 @@ export default class Game extends React.Component {
     // game in this instance
     my_id: PropTypes.number.isRequired,
 
-    // This is a mapping from player color to player
-    // participant id. Red is always the host, and there will
-    // always be two available because we need at least two
-    // players to play the game. If there's only two, the
-    // opponent will be yellow. If there's 3, the 3 colors in
-    // play will be red, green, and yellow. This also
-    // implicitly gives us the number of players.
-    players: PropTypes.arrayOf(PropTypes.shape({
-      color: PropTypes.string.isRequired,
-      is_host: PropTypes.bool.isRequired,
-      participant_id: PropTypes.number.isRequired,
-      username: PropTypes.string.isRequired,
-    })).isRequired,
+    // See prop_types.js for explanation on this type
+    players: PT.players.isRequired,
 
     // This function tells the server to roll via player socket.
     // it takes no parameter since the actual rolling will be
