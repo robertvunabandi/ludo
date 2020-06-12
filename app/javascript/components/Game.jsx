@@ -143,6 +143,8 @@ export default class Game extends React.Component {
 
     this.props.requestMaxHistory()
     this.props.requestTurnInfo()
+
+    window.addEventListener("keyup", Game.handleKeyPressHandler())
   }
 
   handleReceiveHistory(received) {
@@ -368,6 +370,30 @@ export default class Game extends React.Component {
   closeRules() {
     this.setState({display_rules: false})
   }
+
+  static handleKeyPressHandler() {
+    const enter = new Event("enter_pressed")
+    const left = new Event("left_pressed")
+    const right = new Event("right_pressed")
+    return (event) => Game.handleKeyPressEvent(event, enter, left, right)
+  }
+
+  static handleKeyPressEvent(event, enter, left, right) {
+    const key = event.key
+    const code = event.keyCode
+    if (key === C.key.ENTER.key || code === C.key.ENTER.code) {
+      window.dispatchEvent(enter)
+      return
+    }
+    if (key === C.key.LEFT.key || code === C.key.LEFT.code) {
+      window.dispatchEvent(left)
+      return
+    }
+    if (key === C.key.RIGHT.key || code === C.key.RIGHT.code) {
+      window.dispatchEvent(right)
+    }
+  }
+
 
   render() {
     return <GameView

@@ -46,6 +46,30 @@ const H = {
     }
     return {}
   },
+
+  _addEventListener(type, func) {
+    window._LUDO_EVENTS = window._LUDO_EVENTS || {}
+    let for_type = window._LUDO_EVENTS[type]
+    if (for_type) {
+      window.removeEventListener(type, for_type)
+    }
+    window._LUDO_EVENTS[type] = func
+    window.addEventListener(type, func)
+  },
+
+}
+
+// event listeners
+H.addEnterKeyEventListener = function addEnterKeyEventListener(func) {
+  H._addEventListener("enter_pressed", func)
+}
+
+H.addLeftKeyEventListener = function addLeftKeyEventListener(func) {
+  H._addEventListener("left_pressed", func)
+}
+
+H.addRightKeyEventListener = function addRightKeyEventListener(func) {
+  H._addEventListener("right_pressed", func)
 }
 
 

@@ -26,6 +26,11 @@ const C = {
     NULL: "null",
     STOP: "stop",
   },
+  key: {
+   ENTER: { code: 13, key: "Enter" },
+   LEFT: { code: 37, key: "ArrowLeft" },
+   RIGHT: { code: 39, key: "ArrowRight" },
+  }
 }
 
 C.COLORS = [C.color.RED, C.color.GREEN, C.color.YELLOW, C.color.BLUE]
