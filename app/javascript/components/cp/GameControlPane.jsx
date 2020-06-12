@@ -253,6 +253,8 @@ export default class GameControlPane extends React.Component {
   }
 
   _endTurn() {
+    // deselect roll at the end of my turn
+    this.selectRoll(null)
     this.props.finishTurn()
   }
 
@@ -281,8 +283,10 @@ function GameControlPaneView(props) {
 
   // INSTRUCTIONS & ACTION
   const {instruction, actionFunction, action_text, disabled_action} = props
+  H.addEnterKeyEventListener(actionFunction)
 
   // ROLLS
+  // TODO: this can really be cleaned up and moved to its own component
   const rolls_height = props.height * 1.5 / denominator
   const rolls_height_style = {height: rolls_height, maxHeight: rolls_height}
   const dice_width = rolls_height * 0.99
@@ -298,6 +302,38 @@ function GameControlPaneView(props) {
       selected={r.selected}
       onClick={props.selectRoll} />
   ))
+  const selection_rolls = my_rolls
+    .filter(r => !r.used)
+    .map(r => [r.id, r.index, r.roll])
+  const selected_roll_index_obj = my_rolls
+    .filter(r => !r.used)
+    .map((r, i) => [r.selected, i])
+    .filter(([selected, index]) => selected)
+  const selected_roll_index = selected_roll_index_obj.length > 0
+    ? selected_roll_index_obj[0][1]
+    : -1
+  H.addLeftKeyEventListener(() => {
+    const max_index = selection_rolls.length - 1
+    if (selected_roll_index === -1) {
+      props.selectRoll(selection_rolls[max_index])
+      return
+    }
+    const index = selected_roll_index === 0
+      ? max_index
+      : selected_roll_index - 1
+    props.selectRoll(selection_rolls[index])
+  })
+  H.addRightKeyEventListener(() => {
+    const max_index = selection_rolls.length - 1
+    if (selected_roll_index === -1) {
+      props.selectRoll(selection_rolls[0])
+      return
+    }
+    const index = selected_roll_index === max_index
+      ? 0
+      : selected_roll_index + 1
+    props.selectRoll(selection_rolls[index])
+  })
 
   return (
     <div id="game-control-pane" style={height_style}>
