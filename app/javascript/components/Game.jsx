@@ -143,14 +143,6 @@ export default class Game extends React.Component {
 
     this.props.requestMaxHistory()
     this.props.requestTurnInfo()
-
-    // to ensure we're up to date, we request this every this much
-    // milliseconds intervals
-    // TODO: this can be kind of dangerous because it'll just
-    // bombard the server... maybe request only when unsure?
-    // I'm keeping this commented out until I see a benefit from
-    // it.
-    // setInterval(this.props.requestMaxHistory, Game.REQUEST_MAX_HISTORY_INTERVAL)
   }
 
   handleReceiveHistory(received) {
