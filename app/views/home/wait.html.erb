@@ -7,12 +7,13 @@
 
 <span class='block-center center'>
   <span>
-    Send the following link to your friends so
-    they can join this game:
+    The game id is <b style="background-color: cyan; display: inline-block; padding: 0.2rem 0.5rem;"><%= @game.id %></b>.
+    Send this game ID to your friend and ask them to enter it in the
     <span class="copyable-link">
-      <span class="link"><%= "#{@hostname}/join/#{@game.id}" %></span>
-      <span class="copy">copy</span>
-    </span>
+       <span class="link"><%= "#{@hostname}/join" %></span>
+       <span class="copy">copy</span>
+     </span>
+    page in order for them to join this game.
   </span>
   <span class='h1'>Waiting for Others to Join</span>
   <span class='block-center'>
