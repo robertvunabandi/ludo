@@ -86,3 +86,8 @@ and Rails version 6.0.3.
 
 The Wiki contains a bit more detailed informations on the game design and
 other things.
+
+## Contributing
+
+I would greatly appreciate any contribution. Feel free to make pull requests
+and such.
