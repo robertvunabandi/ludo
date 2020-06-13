@@ -253,9 +253,12 @@ export default class GameControlPane extends React.Component {
   }
 
   _endTurn() {
-    // deselect roll at the end of my turn
-    this.selectRoll(null)
+    // finishing the turn after deselecting the roll
+    // created a bug in the server that was creating an
+    // extra roll with no roll_hint. I'm not sure why!
+    // Swapping the two fixed it though.
     this.props.finishTurn()
+    this.setState({selected_roll: null})
   }
 
   render() {
