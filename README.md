@@ -1,167 +1,88 @@
 # Ludo
 
+I created this online ludo game as a way to learn how to write web
+applications using rails. However, I stopped short of deploying the
+game online since it was more of a learning experience and I didn't
+want to deal with various bugs from trying to deploy it on Heroku.
+**However, anyone can pull the code and run the application
+locally so that they can play with friends! More details on this
+below.**
+
+Here's a view of the what game looks like:
+![Gameplay](./public/gameplay.png)
+
+## How to Run Locally
+
+If you are already familiar with rails, this will be super easy. If
+you are not, you might have to do a little more work to get this to
+work.
+
+In order to run this app locally (and thus play with friends), you have
+to first ensure that you have the required binaries:
+
+1. Ruby in version 2.7.1 or greater (as long as is backward compatible
+   with version 2.7.1p83). See
+   [ruby](https://www.ruby-lang.org/en/downloads/)'s website.
+2. Rails version 6.0.3.x or greater. See
+   [rails guide](https://guides.rubyonrails.org/v5.0/getting_started.html).
+3. PostgreSQL database.
+   - I probably had the most trouble here. There's a problem where Postgre
+     seems like it's installed but it's not running. I had to manually
+     delete my running version then install it again.
+   - Unfortunately I didn't take any note. Hope this is enough to figure
+     it out. You might not run into any bug in fact if you didn't have
+     Postgre previously installed or installed it correctly the first
+     time unlike what I did.
+4. Node.js. I am not sure if rails installs it automatically, but if it
+   doesn't, you should make sure node.js works. This also comes with
+   yarn package manager and a few other packages.
+
+I believe thsoe are all the requirements. After installing them, you can
+simply `git clone` this repo, then run `bundle install` to install
+everything, and then run locally. To run it, run with the following command:
+```bash
+bin/rails server -b 0.0.0.0 -p 3000
+```
+
+This will bind the IP `0.0.0.0`, which allows people on the same network
+to access your application. To be honest, I don't fully understand how
+this binding thing works, but the above is what helped make it work.
+Here are some resources on that if curious:
+- https://stackoverflow.com/questions/7325663/access-webrick-rails-from-another-computer-on-local-network
+
+### (Bonus) Running on Different Networks
+
+To be able to run it online with friends not necessarily on
+the same network, [ngrok](https://ngrok.com/) was a solution that worked
+relatively well for me. Still, rails requires that you specify the host
+that you're deploying from. Let's assume you're running on port `3000`
+(and this app runs on `3000` anyway). After you've downloaded and
+installed `ngrok`, you run the following on your terminal:
+
+```bash
+ngrok http 3000
+```
+
+Then, it will output something like this on that window:
+
+![ngrok-sample](public/ngrok-sample.png)
+
+Note how it has a URL that forwards to `http://localhost:3000` that matches
+the following regex: `https?://.+\.ngrok.io`. Take that url, open
+`config/application.rb`, and add the line:
+```ruby
+config.hosts << URL
+```
+(where `URL` is the url from ngrok)
+
+I preferred adding this everytime I made a new game because it's more
+secure than just allowing any ngrok url forward to my localhost at port
+3000.
+
+## Other Information
+
 This app was initially generated using `rails new` with Ruby version 2.7.1p83
 and Rails version 6.0.3.
 
-
-## Design
-
-This section describes the overall design of the game that we're going for.
-This does not necessarily mean that we'll aim for this right away, but that's
-the goal.
-
-### Game Model
-
-A game is essentially an instance of Ludo that someone started, and this
-game will have multiple agents. All agents, in a fully authorized game,
-may have audio enabled (NOTE: we may allow video as well, but for now
-that seems like too much).
-
-Now, a game will have 3 agents: the game host, the players, and viewers.
-
-The **game host** has full priviledge to the game. They may
-allow/restrict/disallow viewers at the start of the game, and for all
-viewers (collectively), they may enable or disable audio. The host may
-also enable which variants of the game is played (to be discussed in the
-Game Rules section).
-
-The **game players** are able to play the games. Their audio can only be
-enabled/disabled by themselves, but they have that priviledge at all times.
-
-The **game viewers** only watch the game. Viewers may watch any public game
-or a game for which they have a restricted access to (i.e., through password).
-
-All games are in 3 states:
-1. WAITING
-   - While a game is in this state, new players may join in or leave the game.
-   - At most 4 players may join, and at least 2 players must join.
-   - Viewers may also join as viewers.
-2. ONGOING
-   - Games in this state can be viewed.
-   - Viewers may join any ongoing game.
-3. COMPLETED
-   - A history of the game can be viewed by anyone.
-
-### Game Rules
-
-These rules are a bit inspired from the [mastersofgame](https://www.mastersofgames.com/rules/ludo-rules-instructions-guide.htm)
-website.
-
-Players take turns in a clockwise order. At the start of the game,
-we have a sequence of rolls. We roll with 2 dices in this game.
-The player with the highest roll goes first.
-
-Then, for the next sets of rolls, let's assume a player rolls [`X`, `Y`]. Then,
-the following actions can be taken:
-- If any of `X` or `Y` is a 6, the player must roll that one again. They
-  will continue to roll until no more 6's are rolled.
-    - In a variant of this, we may allow continued rolling only if *both*
-      `X` and `Y` are 6's.
-
-  After that, let's assume the player has collected move collection
-  {`X_1`, ..., `X_n`}.
-- If a piece is out of the home, it may move that piece forward for any
-  of the `X_i`. A player may choose to move multiple pieces for each of the
-  `X_i`s.
-    - If a player lands on their piece, then they are doubled in that square.
-    - If instead a player lands on another player's piece, they capture them.
-        - In one variant, captures go to the capturer's home, from which they
-          must be removed with a 6 into the home and then again with a 6 to exit
-          the home.
-        - In another variant, a player simply returns home to start over.
-    - In another variant (perhaps a harder one), if a piece is close to the
-      graduation lane, the piece must land on the 0, then 1, then 2, etc. For
-      each 1, the player must roll a `1`. For 2, they must roll a `2`, etc.
-    - In other variants, we let the player just move up and graduate.
-- If a piece is captured, the player may bring them home using one of the 6
-  they have (if this variant is applied).
-- With a 6, a player may bring someone out to start the ride.
-- Also with a 6, a player may graduate a piece in case that piece is at the
-  end of the graduation line.
-
-A player wins if all of its pieces graduate.
-
-**NOTE:** In other variants of the game, we may have only one die
-instead of 2.
-
-### Game Data Structure
-
-A game, at any given point, is made of the following criteria:
-- `state`: one of the 3 states described above
-- `players`: an array of players. Each
-- `rules`: a set of rules for the games. Specifically, these are rules
-  on all the various variants described above.
-- `history`: a history of moves.
-
-Based on all of these, one can derive the Game View, which is a way to
-see what the board looks like. The display function on the front-end will
-simply derive the game view from the history, which will allow for easy
-local displaying. What will be updated in each turn is simply the move that
-was played.
-
-#### Game State
-
-This was described above. We have the `WAITING` state, the `ONGOING` state,
-and the `COMPLETED` state. Note here that `COMPLETED` doesn't necessarily mean
-that all players have graduated. Often, Ludo doesn't end. So, whenever any
-one player gives up, the whole game ends.
-
-#### Game Players
-
-This is an object with keys `1`, `2`, `3`, and `4` where `1` is the host
-player, `2` is an active player, and `3` and `4` may either be `null` or
-other players (if `3` is `null`, `4` is also `null`).
-
-The value of the objects are player informations:
-- `username` for their name in the game
-- `color`, which will always be assigned randomly
-
-#### Game Rules
-
-TODO: Work in progress. Ideally, we want to find all the various variants
-first and figure out a simple way to describe them.
-
-#### Game History
-
-A game is essentially a sequence of moves. Players play sequentially. So,
-a game is an array of objects (hashes) with the following keys:
-- `r`: this represents the rolls. This is an array of rolls.
-- `a`: this is an array that represents the action(s) taken for reach roll.
- The actions are of the form `A P R` where `A` is the action, `P` is
- which piece took the action, and `R` is the roll. The actions we
- have are `begin`, `move`, `rescue`, `null`, and `stop`.
-   - `P`: This is one of {`X.1`, `X.2`, `X.3`, `X.4`}. `X` represents the player
-     that is taking the action, and the other number represents which piece the
-     player moved.
-   - `R`: This must be in the set of rolls and must be a one to one mapping from
-     each roll to each action.
-   - `begin`: This must be accompanied by a piece that is in the home and with
-     a roll of `6`.
-   - `move`: this is used to move pieces. This move encodes a lot of information.
-     The game will know when a move lands on another player's piece and what to
-     do in that case, and this is also used for graduation and such.
-   - `rescue`: in playing the variant where players get captured into other player
-     players' homes, then rescue takes a piece and moves them out into one's home.
-   - `null`: When there are no valid moves with the pieces given, then the null
-     action is taken with that roll. The piece for this is ignored.
-   - `stop`: A stop action is when a player gives up. Essentially what happens
-     here is that the game stops. If a player quit their browser window, that
-     would also count as a `stop`. With a `stop`, the roll used would be `0`.
-
-#### Game View
-
-Based on the game history and the game rules, we can easily derive the
-game view. So, this is a function of game rules and game history. Let `N`
-be the number of players playing. Then, the game view will be an object
-with the following:
-- `homes`: An array of `N` arrays where each array can only contain
-  elements {`1`, `2`, `3`, `4`} which represents each of the players' pieces.
-  Array at index `i` is for player `i+1`.
-- `cells`: An array of the outer layer path. Each element of the array is
-  either an empty array or an array of pieces that is on it. The pieces are of
-  the `P` form described in the game history. The first element of the array
-  represents the exit out of the host home.
-- `graduations`: An array of `N` arrays containing 7 slots. Index `i`
-  represents hte graduation cell at `i+1` for this player. Then, index `6`
-  (the last index) represents whether they've actually graduated.
-
+The Wiki contains a bit more detailed informations on the game design and
+other things.
