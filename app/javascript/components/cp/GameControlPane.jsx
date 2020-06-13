@@ -75,6 +75,10 @@ export default class GameControlPane extends React.Component {
     this._getActioningDoneWithTurn = this._getActioningDoneWithTurn.bind(this)
     this._getActioningAction = this._getActioningAction.bind(this)
     this._endTurn = this._endTurn.bind(this)
+
+    this._hasValidActions = this._hasValidActions.bind(this)
+    this._isValidSelectedRoll = this._isValidSelectedRoll.bind(this)
+    this._getValidActions = this._getValidActions.bind(this)
   }
 
   selectRoll(roll_selection) {
@@ -194,7 +198,7 @@ export default class GameControlPane extends React.Component {
     }
 
     const has_valid_actions = this._hasValidActions()
-    const ready_to_perform = this.state.selected_roll && this.props.selected_piece
+    const ready_to_perform = this._isValidSelectedRoll() && this.props.selected_piece
     if (ready_to_perform && has_valid_actions) {
       message += (
         "Now press \"PERFORM\". There is at most one possible " +
@@ -232,6 +236,13 @@ export default class GameControlPane extends React.Component {
     return this._getValidActions().length > 0
   }
 
+  _isValidSelectedRoll() {
+    const my_rolls = getMyRolls(
+      this.props.history, this.props.turn, this.state.selected_roll
+    )
+    return my_rolls.filter(r => r.selected).length > 0
+  }
+
   _getValidActions() {
     const {color, id} = this.props.selected_piece
     const roll = this.state.selected_roll[2]
@@ -253,12 +264,10 @@ export default class GameControlPane extends React.Component {
   }
 
   _endTurn() {
-    // finishing the turn after deselecting the roll
-    // created a bug in the server that was creating an
-    // extra roll with no roll_hint. I'm not sure why!
-    // Swapping the two fixed it though.
+    // used to deselect roll here, but that was causing problems
+    // so now we just check if the roll selected is indeed valid
+    // before doing stuffs with it
     this.props.finishTurn()
-    this.setState({selected_roll: null})
   }
 
   render() {
